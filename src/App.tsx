@@ -8,7 +8,6 @@ interface CanvasState {
   height: number;
   diskNum: number;
   diskSize: number;
-  collision: boolean;
 }
 
 const canvasState: CanvasState = {
@@ -16,13 +15,11 @@ const canvasState: CanvasState = {
   width: 400,
   height: 400,
   diskNum: 100,
-  diskSize: 32,
-  collision: false,
+  diskSize: 16,
 };
 
 const ACTION_TYPES = [
-  "WIDTH_CHANGE",
-  "HEIGHT_CHANGE",
+  "WINDOW_CHANGE",
   "DISK_SIZE_CHANGE",
   "DISK_NUM_CHANGE",
   "COLLISION_CHANGE",
@@ -39,8 +36,7 @@ type ActionTypes = typeof ACTION_TYPES[number];
 type Actions = DispatchActions<
   ActionTypes,
   {
-    WIDTH_CHANGE: { payload: string };
-    HEIGHT_CHANGE: { payload: string };
+    WINDOW_CHANGE: { payload: string };
     DISK_SIZE_CHANGE: { payload: string };
     DISK_NUM_CHANGE: { payload: string };
     COLLISION_CHANGE: { payload: boolean };
@@ -50,14 +46,12 @@ type Actions = DispatchActions<
 const reducer = (state: CanvasState, action: Actions) => {
   switch (action.type) {
     case ACTION_TYPES[0]:
-      return { ...state, width: parseInt(action.payload, 10) };
+      return { ...state, width: parseInt(action.payload, 10), height: parseInt(action.payload, 10) };
     case ACTION_TYPES[1]:
-      return { ...state, height: parseInt(action.payload, 10) };
-    case ACTION_TYPES[2]:
       return { ...state, diskSize: parseInt(action.payload, 10) };
-    case ACTION_TYPES[3]:
+    case ACTION_TYPES[2]:
       return { ...state, diskNum: parseInt(action.payload, 10) };
-    case ACTION_TYPES[4]:
+    case ACTION_TYPES[3]:
       return { ...state, collision: action.payload };
     default:
       return state;
@@ -65,6 +59,7 @@ const reducer = (state: CanvasState, action: Actions) => {
 }
 
 function App() {
+  const t = useRef<number>(0);
   const glInstance = useRef<Screen | null>(null);
   const req = useRef<number | null>(null);
   const [animate, setAnimate] = useState<boolean>(false);
@@ -72,6 +67,7 @@ function App() {
 
   const doFrame = () => {
     if (!glInstance.current) return;
+    t.current += 1;
     glInstance.current.do_frame();
     req.current = requestAnimationFrame(doFrame);
   }
@@ -83,7 +79,6 @@ function App() {
       width: state.width,
       height: state.height,
       disk_size: state.diskSize,
-      collision: state.collision,
     });
     glInstance.current.do_frame();
   }
@@ -130,22 +125,16 @@ function App() {
           <option value="100">100</option>
           <option value="1000">1000</option>
           <option value="10000">10000</option>
+          <option value="50000">50000</option>
+          <option value="100000">100000</option>
         </select>
-        <select value={state.width} onChange={(e) => dispatch({ type: "WIDTH_CHANGE", payload: e.target.value })}>
+        <select value={state.height} onChange={(e) => dispatch({ type: "WINDOW_CHANGE", payload: e.target.value })}>
           <option value="200">200</option>
           <option value="400">400</option>
           <option value="600">600</option>
           <option value="800">800</option>
           <option value="1000">1000</option>
         </select>
-        <select value={state.height} onChange={(e) => dispatch({ type: "HEIGHT_CHANGE", payload: e.target.value })}>
-          <option value="200">200</option>
-          <option value="400">400</option>
-          <option value="600">600</option>
-          <option value="800">800</option>
-          <option value="1000">1000</option>
-        </select>
-        <input type="checkbox" onChange={(e) => dispatch({ type: "COLLISION_CHANGE", payload: e.target.checked })} checked={state.collision} />
       </div>
       <canvas id={state.id} width={state.width} height={state.height} />
     </div>

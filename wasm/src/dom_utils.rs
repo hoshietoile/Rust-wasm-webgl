@@ -1,4 +1,3 @@
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{
     Document, HtmlCanvasElement, WebGlProgram, WebGlRenderingContext, WebGlShader, Window,
@@ -68,7 +67,7 @@ pub fn get_shader(
         .get_shader_parameter(&shader, WebGlRenderingContext::COMPILE_STATUS)
         .as_bool()?;
     if !compile_is_success {
-        panic!("error happened");
+        panic!("failed to compile.");
     }
     Some(shader)
 }
@@ -94,7 +93,6 @@ pub fn create_program(context: &WebGlRenderingContext) -> Option<WebGlProgram> {
         .get_program_parameter(&shader_program, WebGlRenderingContext::LINK_STATUS)
         .as_bool()?;
     if !shader_is_created {
-        let info = context.get_program_info_log(&shader_program)?;
         panic!("failed to create shader.");
     }
     context.use_program(Some(&shader_program));

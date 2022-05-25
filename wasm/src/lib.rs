@@ -4,12 +4,8 @@ mod utils;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
 use web_sys::console::log_1;
-use web_sys::{
-    HtmlCanvasElement, WebGlBuffer, WebGlProgram, WebGlRenderingContext, WebGlShader,
-    WebGlUniformLocation,
-};
+use web_sys::{WebGlBuffer, WebGlRenderingContext, WebGlUniformLocation};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -34,51 +30,34 @@ pub fn output_log(s: &str) {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Disk {
-    id: u32,
     x: f64,   // x-coordinate
     y: f64,   // y-coordinate
     cos: f64, // moving velocity-cos
     sin: f64, // moving velocity-sin
-    size: f64,
 }
 
 impl Disk {
-    fn new(id: u32, x: f64, y: f64, cos: f64, sin: f64, size: f64) -> Self {
-        Self {
-            id,
-            x,
-            y,
-            cos,
-            sin,
-            size,
-        }
-    }
-
-    /**
-     * 2ディスクの絶対距離
-     */
-    fn distance_from(&self, other_x: f64, other_y: f64) -> f64 {
-        ((self.x - other_x).powi(2) + (self.y - other_y).powi(2)).sqrt()
+    fn new(x: f64, y: f64, cos: f64, sin: f64) -> Self {
+        Self { x, y, cos, sin }
     }
 }
 
 /**
  * ディスクのベクタを初期化する
  */
-fn init_disks(disk_num: u32, bound_x: u32, bound_y: u32, disk_size: f64) -> Vec<Box<Disk>> {
+fn init_disks(disk_num: u32, bound_x: u32, bound_y: u32) -> Vec<Box<Disk>> {
     let mut disks_buffer: Vec<Box<Disk>> = Vec::with_capacity(disk_num as usize);
 
-    let mut random = rand::thread_rng();
+    let mut rand = rand::thread_rng();
     for i in 0..disk_num {
-        let rnd_velocity = 1. + 3. * random.gen_range(0., 1.);
-        let rnd_angle = 2. * std::f64::consts::PI * random.gen_range(0., 1.);
+        let random = rand.gen_range(0., 1.);
+        let velocity = 1. + 3. * random;
+        let angle = std::f64::consts::PI * (0.1 * (i as f64) * random);
         let disk = Box::new(Disk::new(
-            i as u32,
-            (bound_x as f64) * random.gen_range(0., 1.),
-            (bound_y as f64) * random.gen_range(0., 1.),
-            rnd_velocity * rnd_angle.cos(),
-            rnd_velocity * rnd_angle.sin(),
-            disk_size,
+            (bound_x as f64) / 2.,
+            (bound_y as f64) / 2.,
+            velocity * angle.cos(),
+            velocity * angle.sin(),
         ));
         disks_buffer.push(disk);
     }
@@ -98,7 +77,6 @@ pub struct Screen {
     height: u32,
     disk_num: u32,
     disk_size: f64,
-    collision: bool,
 
     disks: Vec<Box<Disk>>,
 }
@@ -133,84 +111,10 @@ impl Screen {
     }
 
     /**
-     * 衝突 (TODO: パフォーマンス悪すぎ)
-     */
-    fn conflict(&mut self) -> () {
-        // self.disks = self
-        //     .disks
-        //     .iter()
-        //     .map(|d1| {
-        //         let mut x = d1.x;
-        //         let mut y = d1.y;
-        //         let mut cos = d1.cos;
-        //         let mut sin = d1.sin;
-
-        //         for d2 in self.disks.clone().iter() {
-        //             if d1.id == d2.id {
-        //                 continue;
-        //             }
-        //             let distance = (*d1).as_ref().distance_from(d2.x, d2.y);
-        //             if distance < (d1.size + d2.size) as f64 {
-        //                 x = d1.size - (d1.x - d1.size);
-        //                 y = d1.size - (d1.y - d1.size);
-        //                 cos = -d1.cos.abs();
-        //                 sin = -d1.sin.abs();
-        //                 return Box::new(Disk::new(d1.id, x, y, cos, sin, d1.size));
-        //             }
-        //         }
-        //         Box::new(Disk::new(d1.id, x, y, cos, sin, d1.size))
-        //     })
-        //     .collect::<Vec<Box<Disk>>>()
-        let cloned = self.disks.clone();
-        for d1 in self.disks.iter_mut() {
-            for d2 in cloned.iter() {
-                if d1.id == d2.id {
-                    continue;
-                }
-                let distance = (*d1).as_ref().distance_from(d2.x, d2.y);
-                if distance < (d1.size + d2.size) as f64 {
-                    d1.x = d1.size - (d1.x - d1.size);
-                    d1.y = d1.size - (d1.y - d1.size);
-                    d1.cos = -d1.cos.abs();
-                    d1.sin = -d1.sin.abs();
-                }
-            }
-        }
-        // self.disks = self
-        //     .disks
-        //     .iter()
-        //     .map(|d1| {
-        //         let mut x = d1.x;
-        //         let mut y = d1.y;
-        //         let mut cos = d1.cos;
-        //         let mut sin = d1.sin;
-
-        //         for d2 in self.disks.clone().iter() {
-        //             if d1.id == d2.id {
-        //                 continue;
-        //             }
-        //             let distance = (*d1).as_ref().distance_from(d2.x, d2.y);
-        //             if distance < (d1.size + d2.size) as f64 {
-        //                 x = d1.size - (d1.x - d1.size);
-        //                 y = d1.size - (d1.y - d1.size);
-        //                 cos = -d1.cos.abs();
-        //                 sin = -d1.sin.abs();
-        //                 return Box::new(Disk::new(d1.id, x, y, cos, sin, d1.size));
-        //             }
-        //         }
-        //         Box::new(Disk::new(d1.id, x, y, cos, sin, d1.size))
-        //     })
-        //     .collect::<Vec<Box<Disk>>>()
-    }
-
-    /**
      * 各アニメーションフレームごとの処理
      */
     pub fn do_frame(&mut self) -> () {
         self.on_animation_frame();
-        if self.collision {
-            self.conflict();
-        }
         self.draw();
     }
 
@@ -251,7 +155,6 @@ impl Screen {
         self.gl
             .enable_vertex_attrib_array(self.attrib_coords as u32);
 
-        // TODO: color attrib
         self.gl.enable_vertex_attrib_array(self.attrib_color as u32);
         self.gl
             .vertex_attrib3f(self.attrib_color as u32, 1., 0., 0.);
@@ -285,13 +188,12 @@ pub fn init_gl(option_input: JsValue) -> Screen {
     let height = options.height.unwrap_or(500);
     let disk_num = options.disk_num.unwrap_or(100);
     let disk_size = options.disk_size.unwrap_or(32.);
-    let collision = options.collision.unwrap_or(false);
 
     let context = dom_utils::get_webgl_context_by_id(canvas_id.as_str(), width, height).unwrap();
     let program = dom_utils::create_program(&context).unwrap();
     context.use_program(Some(&program));
 
-    let disks = init_disks(disk_num, width, height, disk_size);
+    let disks = init_disks(disk_num, width, height);
     let attrib_coords = context.get_attrib_location(&program, "a_coords");
     let buffer_coords = context.create_buffer().unwrap();
     let attrib_color = context.get_attrib_location(&program, "a_color");
@@ -338,6 +240,5 @@ pub fn init_gl(option_input: JsValue) -> Screen {
         attrib_coords,
         buffer_coords,
         attrib_color,
-        collision,
     }
 }
