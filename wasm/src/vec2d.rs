@@ -66,6 +66,13 @@ impl Vec2d {
     self.speed = speed;
     *self
   }
+  
+  pub fn angle_change(&mut self, angle: f64) -> Self {
+    self.angle = angle;
+    self.x = angle.sin() * self.speed;
+    self.y = angle.cos() * self.speed;
+    *self
+  }
 }
 
 impl Add for Vec2d {

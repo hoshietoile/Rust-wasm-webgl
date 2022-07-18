@@ -44,6 +44,7 @@ features = [
   "Document",
   "HtmlCanvasElement",
   "WebGlRenderingContext",
+  "CanvasRenderingContext2d",
   "WebGlShader",
   "WebGlBuffer",
   "WebGlProgram",

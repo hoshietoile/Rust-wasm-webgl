@@ -1,6 +1,7 @@
 use wasm_bindgen::JsCast;
 use web_sys::{
     Document, HtmlCanvasElement, WebGlProgram, WebGlRenderingContext, WebGlShader, Window,
+    CanvasRenderingContext2d
 };
 
 static VERTEX_SHADER: &'static str = r#"
@@ -53,6 +54,16 @@ pub fn get_webgl_context_by_id(id: &str, width: u32, height: u32) -> Option<WebG
             c.viewport(0, 0, width as i32, height as i32);
             Some(c)
         })
+}
+
+pub fn get_context2d_by_id(id: &str, width: u32, height: u32) -> Option<CanvasRenderingContext2d> {
+    canvas(id)
+        .and_then(|c| {
+            c.set_width(width);
+            c.set_height(height);
+            c.get_context("2d").ok()
+        })
+        .and_then(|c| c.unwrap().dyn_into::<CanvasRenderingContext2d>().ok())
 }
 
 pub fn get_shader(
