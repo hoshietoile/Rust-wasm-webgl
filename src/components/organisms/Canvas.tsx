@@ -2,7 +2,7 @@ import { useAtom } from 'jotai';
 import React, { ComponentPropsWithoutRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 import { gameStateAtom } from '../../stores/gameStore';
-import init, { init_gl, Screen } from '../../../wasm/pkg/wasm'
+import init, { init_screen, Screen } from '../../../wasm/pkg/wasm'
 
 export interface CanvasHandler {
   updateCanvasState: () => void;
@@ -36,10 +36,12 @@ export const Canvas: React.FC<CanvasProps> = forwardRef<CanvasHandler>(({}, ref)
 
   /** canvas初期化処理. */
   const initGl = () => {
-    glInstanceRef.current = init_gl({
+    glInstanceRef.current = init_screen({
       ...canvasState
     });
-    glInstanceRef.current.do_frame(0);
+    console.log(glInstanceRef.current)
+    // glInstanceRef.current.do_frame(0);
+    doFrame(0);
   }
 
   /** 初期化時処理 */
