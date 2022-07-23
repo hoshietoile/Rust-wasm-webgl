@@ -84,6 +84,8 @@ pub struct Screen {
     last_fps: u32,
 }
 
+type ThreadId = u32;
+
 #[wasm_bindgen]
 impl Screen {
     /**
@@ -92,6 +94,52 @@ impl Screen {
     pub fn do_frame(&mut self, time: f64) -> () {
         self.on_animation_frame(time);
         self.draw();
+    }
+
+    /**
+     * ThreadID一覧
+     */
+    pub fn get_thread_ids(&self) -> Vec<ThreadId> {
+        self.schedule.threads
+            .iter()
+            .map(|thread| thread.id)
+            .collect()
+    }
+    
+    /**
+     * settings作成/更新
+     */
+    pub fn upsert_thread_setting(&mut self, thread_id: Option<u32>, option_input: JsValue) -> Option<ThreadId> {
+        log!("options {:?}", option_input); 
+        let options: setting::SettingOptions = option_input.into_serde().unwrap();
+        let setting = setting::Setting::new(&options);
+        let thread = match thread_id {
+            Some(id) => {
+                self.schedule
+                    .threads
+                    .iter()
+                    .find(|thread| thread.id == id)
+                    .map(|thread| {
+                        let mut cloned = thread.clone();
+                        cloned.update_setting(setting);
+                        cloned 
+                    })
+            },
+            None => {
+                let thread_id = self.schedule.generate_id();
+                Some(
+                    EventThread::new(
+                        thread_id,
+                        setting.shot_behavior,
+                        setting,
+                    )
+                )
+            },
+        }?;
+        let thread_id = thread.id;
+        self.schedule.subscribe_thread(thread);
+        self.schedule.refresh_events();
+        Some(thread_id)
     }
 }
 
@@ -197,19 +245,19 @@ impl Screen {
         self.fps_counter += 1;
     }
 
-    /**
-     * Scheduleの更新処理
-     */
-    pub fn update_schedule(&mut self, setting: Setting) {
-        let mut schedule = Schedule::new();
-        let thread_id = schedule.generate_id();
-        let thread = EventThread::new(
-            thread_id,
-            setting.shot_behavior,
-            setting,
-        );
-        schedule.subscribe_thread(thread);
-    }
+    // /**
+    //  * Scheduleの更新処理
+    //  */
+    // pub fn update_schedule(&mut self, setting: Setting) {
+    //     let mut schedule = Schedule::new();
+    //     let thread_id = schedule.generate_id();
+    //     let thread = EventThread::new(
+    //         thread_id,
+    //         setting.shot_behavior,
+    //         setting,
+    //     );
+    //     schedule.subscribe_thread(thread);
+    // }
 }
 
 /**
@@ -250,7 +298,7 @@ pub fn init_screen(option_input: JsValue) -> Screen {
         setting,
     );
     schedule.subscribe_thread(thread);
-    schedule.subscribe_events();
+    schedule.refresh_events();
 
     Screen {
         width,

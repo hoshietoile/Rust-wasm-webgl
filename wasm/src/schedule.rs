@@ -8,7 +8,7 @@ pub struct Schedule {
   time: u32,
   iter: u32,
   events: Vec<Event>,
-  threads: Vec<EventThread>,
+  pub threads: Vec<EventThread>,
 }
 
 impl Schedule {
@@ -36,13 +36,30 @@ impl Schedule {
   }
 
   // threadを追加
-  pub fn subscribe_thread(&mut self, thread: EventThread) {
-    self.threads.push(thread);
+  pub fn subscribe_thread(&mut self, thread: EventThread) -> Option<()> {
+    // self.threads.push(thread);
+    // self.threads = self.threads
+    //   .iter()
+    //   .map()
+    let found = self.threads
+      .iter()
+      .position(|th| thread.id == th.id);
+    match found {
+      Some(nth) => {
+        let update_target = self.threads.get_mut(nth)?;
+        update_target.setting = thread.setting;
+        update_target.shot_behavior = thread.shot_behavior;
+      },
+      None => {
+        self.threads.push(thread);
+      },
+    };
+    Some(())
   }
 
   // threadのSettingに基づいてEventを生成+登録
-  pub fn subscribe_events(&mut self) {
-    let mut events = self.threads
+  pub fn refresh_events(&mut self) {
+    self.events = self.threads
       .iter()
       .flat_map(|thread| {
         let start_at_ms = thread.setting.start_at;
@@ -59,7 +76,6 @@ impl Schedule {
         buff
       })
       .collect::<Vec<Event>>();
-    self.events.append(&mut events);
   }
 
   // 現イテレーションでのeventを巡回

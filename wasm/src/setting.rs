@@ -38,7 +38,7 @@ pub struct SettingOptions {
 /**
  * 各Threadに割り当てる設定値
  */
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Setting {
   pub iteration_ms: u32,
   pub start_at: u32,

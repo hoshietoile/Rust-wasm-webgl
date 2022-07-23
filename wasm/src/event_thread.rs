@@ -2,7 +2,7 @@ use super::shot::{ ShotBehavior, ShotType };
 use super::setting::{ Setting };
 use super::disk::{ Disk };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EventThread {
   pub id: u32,
   pub shot_behavior: ShotBehavior,
@@ -16,6 +16,13 @@ impl EventThread {
       shot_behavior, 
       setting,
     }
+  }
+
+  /**
+   * setting更新
+   */
+  pub fn update_setting(&mut self, setting: Setting) {
+    self.setting = setting;
   }
 
   /**

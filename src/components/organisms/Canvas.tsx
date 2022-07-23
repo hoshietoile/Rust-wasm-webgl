@@ -23,6 +23,9 @@ export const Canvas: React.FC<CanvasProps> = forwardRef<CanvasHandler>(({}, ref)
 
   const [canvasState] = useAtom(gameStateAtom);
 
+  const currentThreadId = useRef<number | null>(null);
+  const [threadIds, setThreadIds] = useState<number[]>([]);
+
   /**
    * 各フレームの実行
    * @param time 
@@ -40,6 +43,10 @@ export const Canvas: React.FC<CanvasProps> = forwardRef<CanvasHandler>(({}, ref)
       ...canvasState
     });
     console.log(glInstanceRef.current)
+    const _ids = glInstanceRef.current.get_thread_ids();
+    const ids = Array.from(_ids); // Uint32Array -> number[]変換
+    currentThreadId.current = ids[0];
+    setThreadIds(ids);
     // glInstanceRef.current.do_frame(0);
     doFrame(0);
   }
@@ -53,11 +60,20 @@ export const Canvas: React.FC<CanvasProps> = forwardRef<CanvasHandler>(({}, ref)
     initialize();
   }, [])
 
+  /** スレッドの追加/更新 追加時はcurrentThreadId = null */
+  const upsertThread = () => {
+    if (glInstanceRef.current) {
+      glInstanceRef.current.upsert_thread_setting(currentThreadId.current || undefined, {...canvasState});
+      const _ids = glInstanceRef.current.get_thread_ids();
+      const ids = Array.from(_ids); // Uint32Array -> number[]変換
+      setThreadIds(ids);
+    }
+  }
+
   /** 親コンポーネントから命令的に事項するインタフェース */
   useImperativeHandle(ref, () => ({
     updateCanvasState() {
-      console.log(canvasState)
-      glInstanceRef.current?.update({...canvasState});
+      upsertThread(); 
     },
     gameStart() {
       if (animateRef.current === true) return;
@@ -75,11 +91,14 @@ export const Canvas: React.FC<CanvasProps> = forwardRef<CanvasHandler>(({}, ref)
   }));
 
   return (
+    <>
+    {JSON.stringify(threadIds)}
     <canvas
       id={canvasState.canvas_id}
       ref={canvasRef}
       width={canvasState.width}
       height={canvasState.height}
     />
+</>
   );
 });
