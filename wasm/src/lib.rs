@@ -11,6 +11,7 @@ mod event;
 mod event_thread;
 
 use setting::Setting;
+use shot::ShotBehavior;
 // use rand::Rng;
 // use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
@@ -52,8 +53,8 @@ const DISK_NUM: u32 = 4_096;
  * ex) 500ms -> 30fr
  *     200ms -> 12fr
  */
-pub fn convert_interval_to_frame(interval: u32) -> u32 {
-    FRAMES_PER_SEC * (interval / MILLI_SECONDS)
+pub fn convert_interval_to_frame(interval: u32) -> f64 {
+    (FRAMES_PER_SEC as f64) * ((interval as f64) / (MILLI_SECONDS as f64))
 }
 
 #[derive(Debug)]
@@ -177,6 +178,40 @@ impl Screen {
         );
     }
 
+    // /**
+    //  * 反射時処理
+    //  */
+    // fn on_reflect(&self, disk: &mut Option<Disk>) -> Option<()> {
+    //     let v = disk?;
+    //     let size = v.disk_size;
+    //     let width = self.width;
+    //     let height = self.height;
+    //     let should_reflect = v.reflect_count > 0;
+    //     match (should_reflect, v.behavior) {
+    //         (true, ShotBehavior::Reflect) => {
+    //             // X軸方向
+    //             if v.x - size < 0. || v.x + size > width {
+    //                 v.x -= v.vec2d.x;
+    //                 v.vec2d.x = -v.vec2d.x;
+    //                 v.reflect_count -= v.reflect_count;
+    //             }
+    //             // Y軸方向
+    //             if v.y - size < 0. || v.y + size > height {
+    //                 v.y -= v.vec2d.y;
+    //                 v.vec2d.y = -v.vec2d.y;
+    //                 v.reflect_count -= v.reflect_count;
+    //             }
+    //         }
+    //         _ => {
+    //             // 通常弾の場合
+    //             if v.x + size < 0. || v.x - size > width || v.y + size < 0. || v.y - size > height {
+    //                 disk = None
+    //             }
+    //         }
+    //     };
+    //     Some(())
+    // }
+
     /**
      * 登録しているDiskのステータスに従って座標を更新
      */
@@ -187,6 +222,31 @@ impl Screen {
             .map(|disk| {
                 match disk {
                     Some(mut v) => {
+                        v.gain_age(1);
+
+                        // スリープ制御
+                        v.sleep_time += match v.behavior {
+                            ShotBehavior::Sleep(interval, timeout) => {
+                                if interval == 0 {
+                                    0
+                                } else if v.age % (interval as u32) == 0 {
+                                    timeout
+                                } else if v.sleep_time > 0 {
+                                    -1 
+                                } else {
+                                    0
+                                }
+                            },
+                            _ => 0,
+                        };
+                        if v.sleep_time > 0 {
+                            return Some(v);
+                        }
+
+
+                        // if ShotBehavior::Sleep(timeout, count) {
+
+                        // }
                         v.x += v.vec2d.x;
                         v.y += v.vec2d.y;
 

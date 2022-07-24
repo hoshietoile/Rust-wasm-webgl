@@ -20,6 +20,7 @@ pub enum ShotBehavior {
     SpeedDown, // 減速率(%)/減速イテレーション
     Reflect, // 画面反射
     Random, // ランダム角度
+    Sleep(i32, i32), // スリープ弾(interval, timeout)
 }
 
 pub fn resolve_shot_behavior(num: u32) -> ShotBehavior {
@@ -28,6 +29,7 @@ pub fn resolve_shot_behavior(num: u32) -> ShotBehavior {
         2 => ShotBehavior::SpeedDown,
         3 => ShotBehavior::Reflect,
         4 => ShotBehavior::Random,
+        5 => ShotBehavior::Sleep(0, 0),
         _ | 0 => ShotBehavior::Normal,
     }
 }

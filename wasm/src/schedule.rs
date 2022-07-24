@@ -5,7 +5,7 @@ use super::Disk;
 #[derive(Debug)]
 pub struct Schedule {
   gen_id: u32,
-  time: u32,
+  end_at: u32,
   iter: u32,
   events: Vec<Event>,
   pub threads: Vec<EventThread>,
@@ -15,7 +15,7 @@ impl Schedule {
   pub fn new() -> Self {
     Schedule {
       gen_id: 0,
-      time: 0,
+      end_at: 0,
       iter: 0,
       events: vec![],
       threads: vec![],
@@ -37,10 +37,6 @@ impl Schedule {
 
   // threadを追加
   pub fn subscribe_thread(&mut self, thread: EventThread) -> Option<()> {
-    // self.threads.push(thread);
-    // self.threads = self.threads
-    //   .iter()
-    //   .map()
     let found = self.threads
       .iter()
       .position(|th| thread.id == th.id);
@@ -69,24 +65,36 @@ impl Schedule {
         // relative_ms -> イテレーション内での相対的ms
         // absolute_ms -> スクリーン全体での絶対的ms
         for (relative_ms, absolute_ms) in (start_at_ms..=end_at_ms).enumerate() {
-          if (relative_ms as u32) % super::convert_interval_to_frame(thread.setting.shot_interval) == 0 {
+          if (relative_ms as f64) % super::convert_interval_to_frame(thread.setting.shot_interval) == 0. {
             buff.push(Event::new(thread.id, absolute_ms, absolute_ms)); // TODO: end_at入らない気がするが
           }
         }
         buff
       })
       .collect::<Vec<Event>>();
+
+    let end_at = self.events
+      .iter()
+      .max_by(|a, b| a.end_at.cmp(&b.end_at));
+
+    self.end_at = end_at.unwrap().end_at;
   }
 
   // 現イテレーションでのeventを巡回
   pub fn walkthrough_events(&mut self, disks: &mut Vec<Option<Disk>>) -> Option<()> {
+    let iter = self.iter;
+    // リセット 必要かは検討
+    if iter == self.end_at {
+      self.reset_iteration();
+    }
+
     let events_iter = self.events
       .iter()
-      .filter(|event| event.start_at == self.iter);
+      .filter(|event| event.start_at == iter);
     // crate::log!("iter: {:?}, events: {:?}", current_iter, events_iter.clone().collect::<Vec<_>>());
     for event in events_iter {
       let thread = self.threads
-        .iter()
+        .iter_mut()
         .find(|thread| thread.id == event.thread_id);
       thread?.spawn_disks(&mut disks.as_mut());
     }

@@ -10,11 +10,14 @@
   "dependencies": {
     "@headlessui/react": "^1.6.6",
     "@hookform/resolvers": "^2.9.6",
+    "@tiptap/react": "^2.0.0-beta.114",
     "clsx": "^1.2.1",
+    "frappe-gantt": "^0.6.1",
     "heroicons": "^1.0.6",
     "jotai": "^1.7.5",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-frappe-gantt": "^0.2.3",
     "react-hook-form": "^7.33.1",
     "zod": "^3.17.3"
   },

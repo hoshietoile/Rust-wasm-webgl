@@ -14,6 +14,7 @@ import { BaseBtn, ButtonBtn } from '../atoms/BaseBtn';
 import { StartIcon, StopIcon, TmpStopIcon } from '../atoms/Icons';
 import { BtnGroup } from '../molecules/BtnGroup';
 import { Panel } from '../atoms/Panel';
+import { Schedule } from './Schedule';
 
 // interface ConnectFormProps<T> {
 //   children: React.FC<{
@@ -40,12 +41,16 @@ export const schema = z.object({
   shot_way_num: zodNumber({ min: 1, max: 100 }),
   shot_speed: zodNumber({}),
   shot_interval: zodNumber({ min: 100, max: 1000 }),
-  shot_behavior: zodNumber({ min: 0, max: 4 }),
+  shot_behavior: zodNumber({ min: 0, max: 5 }),
   speed_change_per: zodNumber({ min: 0.1, max: 5 }),
   speed_change_interval: zodNumber({ min: 10, max: 100 }),
   x_coordinate: zodNumber({ min: 1, max: 450 }), // TODO: ストアの値でルールを更新
   y_coordinate: zodNumber({ min: 1, max: 800 }), // TODO: ストアの値でルールを更新
   reflect_count: zodNumber({ min: 0, max: 3 }), // TODO: ストアの値でルールを更新
+  start_at: zodNumber({ min: 0, max: 10000 }), // TODO: ストアの値でルールを更新
+  end_at: zodNumber({ min: 0, max: 10000 }), // TODO: ストアの値でルールを更新
+  sleep_interval: zodNumber({ min: 0, max: 1000 }), // TODO: ストアの値でルールを更新
+  sleep_timeout: zodNumber({ min: 0, max: 1000 }), // TODO: ストアの値でルールを更新
 })
 
 interface GameMakerProps extends ComponentBase {
@@ -227,6 +232,22 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
               />
 
               <div className="flex flex-col y-interval">
+                <span>スリープ</span>
+                <div className="flex gap-4">
+                  <ZodExtendedInput
+                    label="インターバルms"
+                    type='number'
+                    name='sleep_interval'
+                  />
+                  <ZodExtendedInput
+                    label="スリープms"
+                    type='number'
+                    name='sleep_timeout'
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col y-interval">
                 <span>射出位置</span>
                 <div className="flex gap-4">
                   <ZodExtendedInput
@@ -238,6 +259,22 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                     label="Y座標"
                     type='number'
                     name='y_coordinate'
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col y-interval">
+                <span>スケジュール</span>
+                <div className="flex gap-4">
+                  <ZodExtendedInput
+                    label="開始ms"
+                    type='number'
+                    name='start_at'
+                  />
+                  <ZodExtendedInput
+                    label="終了ms"
+                    type='number'
+                    name='end_at'
                   />
                 </div>
               </div>
@@ -272,8 +309,11 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                 >保存</BaseBtn>
               </div>
 
+              <Schedule />
+
             </form>
           </FormProvider>
+
         </>
       </Panel>
       {/* <Container className="flex flex-col"> */}

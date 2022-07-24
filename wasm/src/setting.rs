@@ -33,6 +33,8 @@ pub struct SettingOptions {
   pub x_coordinate: Option<f64>, // X座標
   pub y_coordinate: Option<f64>, // Y座標
   pub reflect_count: Option<u32>, // 反射数 
+  pub sleep_interval: Option<f64>, // スリープ弾
+  pub sleep_timeout: Option<f64>, // スリープ弾
 }
 
 /**
@@ -57,6 +59,8 @@ pub struct Setting {
   pub reflect_count: Option<u32>, // 反射数 
   pub speed_change_per: Option<f64>, // ショット速度変化率
   pub speed_change_interval: Option<f64>, // ショット速度変化インターバル
+  pub sleep_interval: f64, // スリープ弾
+  pub sleep_timeout: f64, // スリープ弾
 }
 
 impl Setting {
@@ -88,6 +92,8 @@ impl Setting {
       speed_change_per: options.speed_change_per,
       speed_change_interval: options.speed_change_interval,
       reflect_count: options.reflect_count,
+      sleep_interval: options.sleep_interval.unwrap_or(0.),
+      sleep_timeout: options.sleep_timeout.unwrap_or(0.),
     }
   }
 }

@@ -33,6 +33,7 @@ pub struct Disk {
     pub disk_type: DiskType, // disk type.
     pub disk_size: f64, // disk size.
     pub img_source: Option<String>, // image source.
+    pub sleep_time: i32,
 }
 
 impl Disk {
@@ -57,10 +58,11 @@ impl Disk {
           disk_type,
           disk_size,
           img_source: None,
+          sleep_time: 0,
         }
     }
 
-    fn gain_age(&mut self, by: u32) {
+    pub fn gain_age(&mut self, by: u32) {
         self.age = self.age + by;
     }
 
