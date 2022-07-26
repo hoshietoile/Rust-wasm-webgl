@@ -15,6 +15,7 @@ import { StartIcon, StopIcon, TmpStopIcon } from '../atoms/Icons';
 import { BtnGroup } from '../molecules/BtnGroup';
 import { Panel } from '../atoms/Panel';
 import { Schedule } from './Schedule';
+import { ScrollCheckGroup } from '../molecules/ScrollCheckGroup';
 
 // interface ConnectFormProps<T> {
 //   children: React.FC<{
@@ -40,7 +41,7 @@ export const schema = z.object({
   // shot_type: zodNumber({ min: 0, max: 3 }),
   shot_way_num: zodNumber({ min: 1, max: 100 }),
   shot_speed: zodNumber({}),
-  shot_interval: zodNumber({ min: 100, max: 1000 }),
+  shot_interval: zodNumber({ min: 50, max: 1000 }),
   shot_behavior: zodNumber({ min: 0, max: 5 }),
   speed_change_per: zodNumber({ min: 0.1, max: 5 }),
   speed_change_interval: zodNumber({ min: 10, max: 100 }),
@@ -51,6 +52,16 @@ export const schema = z.object({
   end_at: zodNumber({ min: 0, max: 10000 }), // TODO: ストアの値でルールを更新
   sleep_interval: zodNumber({ min: 0, max: 1000 }), // TODO: ストアの値でルールを更新
   sleep_timeout: zodNumber({ min: 0, max: 1000 }), // TODO: ストアの値でルールを更新
+  degree_change_by: zodNumber({ min: -360, max: 360 }), // TODO: ストアの値でルールを更新
+})
+.refine((values) => {
+  if (values.sleep_interval <= values.sleep_timeout) {
+    return false;
+  }
+  if (values.start_at >= values.end_at) {
+    return false;
+  }
+  return true;
 })
 
 interface GameMakerProps extends ComponentBase {
@@ -161,10 +172,10 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
 
   return (
     <div className={clsx(
-      "flex gap-4",
+      "flex gap-4 h-[calc(100vh_-_84px)]",
       className,
     )}>
-      <Panel className="flex-1 flex">
+      <Panel className="flex-1 flex overflow-y-scroll">
         <>
           <div className="mx-2">
             <BtnGroup
@@ -213,6 +224,9 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                 name='shot_behavior'
               />
 
+              <ScrollCheckGroup />
+  
+
               <ZodExtendedInput
                 label="速度変化率"
                 type='number'
@@ -229,6 +243,12 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                 label="反射回数"
                 type='number'
                 name='reflect_count'
+              />
+
+              <ZodExtendedInput
+                label="射出角変化量(°)"
+                type='number'
+                name='degree_change_by'
               />
 
               <div className="flex flex-col y-interval">

@@ -178,38 +178,46 @@ impl Screen {
         );
     }
 
+    /**
+     * 反射時処理
+     */
+    fn on_reflect(&self, disk: Disk) -> Option<Disk> {
+        let mut v = disk.clone();
+        let size = v.disk_size;
+        let width = self.width;
+        let height = self.height;
+        let should_reflect = v.reflect_count.unwrap_or(0) > 0;
+        match (should_reflect, v.behavior) {
+            (true, ShotBehavior::Reflect(Some(_))) => {
+                // X軸方向
+                if v.x - size < 0. || v.x + size > width {
+                    v.x -= v.vec2d.x;
+                    v.vec2d.x = -v.vec2d.x;
+                    v.reflect_count = v.reflect_count.map(|num| num - 1);
+                }
+                // Y軸方向
+                if v.y - size < 0. || v.y + size > height {
+                    v.y -= v.vec2d.y;
+                    v.vec2d.y = -v.vec2d.y;
+                    v.reflect_count = v.reflect_count.map(|num| num - 1);
+                }
+                Some(v)
+            }
+            _ => {
+                // 通常弾の場合
+                if v.x + size < 0. || v.x - size > width || v.y + size < 0. || v.y - size > height {
+                    return None;
+                }
+                Some(v)
+            }
+        }
+    }
+
     // /**
-    //  * 反射時処理
+    //  * 
     //  */
-    // fn on_reflect(&self, disk: &mut Option<Disk>) -> Option<()> {
-    //     let v = disk?;
-    //     let size = v.disk_size;
-    //     let width = self.width;
-    //     let height = self.height;
-    //     let should_reflect = v.reflect_count > 0;
-    //     match (should_reflect, v.behavior) {
-    //         (true, ShotBehavior::Reflect) => {
-    //             // X軸方向
-    //             if v.x - size < 0. || v.x + size > width {
-    //                 v.x -= v.vec2d.x;
-    //                 v.vec2d.x = -v.vec2d.x;
-    //                 v.reflect_count -= v.reflect_count;
-    //             }
-    //             // Y軸方向
-    //             if v.y - size < 0. || v.y + size > height {
-    //                 v.y -= v.vec2d.y;
-    //                 v.vec2d.y = -v.vec2d.y;
-    //                 v.reflect_count -= v.reflect_count;
-    //             }
-    //         }
-    //         _ => {
-    //             // 通常弾の場合
-    //             if v.x + size < 0. || v.x - size > width || v.y + size < 0. || v.y - size > height {
-    //                 disk = None
-    //             }
-    //         }
-    //     };
-    //     Some(())
+    // fn on_Speed_change(&self, disk: Disk) -> Option<Disk> {
+        
     // }
 
     /**
@@ -243,17 +251,12 @@ impl Screen {
                             return Some(v);
                         }
 
-
-                        // if ShotBehavior::Sleep(timeout, count) {
-
-                        // }
                         v.x += v.vec2d.x;
                         v.y += v.vec2d.y;
 
-                        if v.x + v.disk_size < 0. || v.x - v.disk_size > self.width || v.y + v.disk_size < 0. || v.y - v.disk_size > self.height {
-                            return None;
-                        }
-                        Some(v)
+                        let d = self.on_reflect(v);
+                        // let d = self.on_speed_change();
+                        d
                     },
                     _ => None,
                 }

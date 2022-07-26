@@ -13,21 +13,21 @@ pub fn resolve_shot_type(num: u32) -> ShotType {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone)]
 pub enum ShotBehavior {
     Normal,
-    SpeedUp,   // 加速率(%)/加速イテレーション
-    SpeedDown, // 減速率(%)/減速イテレーション
-    Reflect, // 画面反射
+    SpeedUp(f64, f64),   // 加速率(%)/加速イテレーション(per, by)
+    SpeedDown(f64, f64), // 減速率(%)/減速イテレーション(per, by)
+    Reflect(Option<u32>), // 画面反射(rest-reflect-count)
     Random, // ランダム角度
     Sleep(i32, i32), // スリープ弾(interval, timeout)
 }
 
 pub fn resolve_shot_behavior(num: u32) -> ShotBehavior {
     match num {
-        1 => ShotBehavior::SpeedUp,
-        2 => ShotBehavior::SpeedDown,
-        3 => ShotBehavior::Reflect,
+        1 => ShotBehavior::SpeedUp(0., 0.),
+        2 => ShotBehavior::SpeedDown(0., 0.),
+        3 => ShotBehavior::Reflect(None),
         4 => ShotBehavior::Random,
         5 => ShotBehavior::Sleep(0, 0),
         _ | 0 => ShotBehavior::Normal,

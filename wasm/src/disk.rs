@@ -24,7 +24,7 @@ pub fn resolve_disk_type(disk_type: u32) -> DiskType {
 #[derive(Debug, Clone)]
 pub struct Disk {
     pub age: u32, // exist age
-    pub reflect_count: u32, // reflect count
+    pub reflect_count: Option<u32>, // reflect count
     pub x: f64,   // x-coordinate
     pub y: f64,   // y-coordinate
     pub speed: f64, // speed
@@ -49,7 +49,10 @@ impl Disk {
         let vec2d = Vec2d::new(angle, speed);
         Self {
           age: 0,
-          reflect_count: 0,
+          reflect_count: match behavior {
+            ShotBehavior::Reflect(num) => num,
+            _ => None,
+          },
           x,
           y,
           speed,

@@ -35,6 +35,7 @@ pub struct SettingOptions {
   pub reflect_count: Option<u32>, // 反射数 
   pub sleep_interval: Option<f64>, // スリープ弾
   pub sleep_timeout: Option<f64>, // スリープ弾
+  pub degree_change_by: Option<f64>, // 角度変化量
 }
 
 /**
@@ -54,6 +55,7 @@ pub struct Setting {
   pub shot_interval: u32, // 発射間隔
   pub x_coordinate: f64, // X座標
   pub y_coordinate: f64, // Y座標
+  pub degree_change_by: f64, // 角度変化量
 
   // 設定されていなくてもいいもの
   pub reflect_count: Option<u32>, // 反射数 
@@ -94,6 +96,7 @@ impl Setting {
       reflect_count: options.reflect_count,
       sleep_interval: options.sleep_interval.unwrap_or(0.),
       sleep_timeout: options.sleep_timeout.unwrap_or(0.),
+      degree_change_by: options.degree_change_by.unwrap_or(0.),
     }
   }
 }

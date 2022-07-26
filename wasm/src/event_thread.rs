@@ -40,6 +40,19 @@ impl EventThread {
     let sleep_timeout = self.setting.sleep_timeout;
     let shot_behavior = match self.setting.shot_behavior {
       ShotBehavior::Sleep(_1, _2) => ShotBehavior::Sleep(sleep_interval as i32, sleep_timeout as i32),
+      ShotBehavior::SpeedUp(_1, _2) => {
+        ShotBehavior::SpeedUp(
+          self.setting.speed_change_interval.unwrap_or(0.),
+          self.setting.speed_change_per.unwrap_or(0.),
+        )
+      },
+      ShotBehavior::SpeedDown(_1, _2) => {
+        ShotBehavior::SpeedDown(
+          self.setting.speed_change_interval.unwrap_or(0.),
+          self.setting.speed_change_per.unwrap_or(0.),
+        )
+      },
+      ShotBehavior::Reflect(_) => ShotBehavior::Reflect(self.setting.reflect_count),
       othersize => othersize,
     };
 
@@ -48,11 +61,12 @@ impl EventThread {
     let new_disks = match self.setting.shot_type {
       ShotType::Circle => {
         let degree = 360. / (self.setting.shot_way_num as f64);
+        let offset = self.setting.degree_change_by;
         (0..self.setting.shot_way_num)
           .into_iter()
           .enumerate()
           .map(|(i, _)| {
-            let angle = std::f64::consts::PI * ((degree * i as f64) / 180.);
+            let angle = std::f64::consts::PI * ((degree * i as f64) / 180.) + (offset * self.iter as f64);
             Some(
               Disk::new(
                 self.setting.x_coordinate,
@@ -69,11 +83,12 @@ impl EventThread {
       },
       ShotType::Linear => {
         let degree = 100. / (self.setting.shot_way_num as f64); // 射出角
+        let offset = self.setting.degree_change_by;
         (0..self.setting.shot_way_num)
           .into_iter()
           .enumerate()
           .map(|(i, _)| {
-            let angle = std::f64::consts::PI * ((degree * i as f64) / 180.) - std::f64::consts::PI * 50. / 180.;
+            let angle = std::f64::consts::PI * ((degree * i as f64) / 180.) - std::f64::consts::PI * 50. / 180.  + (offset * self.iter as f64);
             Some(
               Disk::new(
                 self.setting.x_coordinate,

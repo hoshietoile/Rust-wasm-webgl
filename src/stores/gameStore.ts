@@ -21,4 +21,5 @@ export const gameStateAtom = atom({
   end_at: 10000,
   sleep_interval: 50,
   sleep_timeout: 20,
+  degree_change_by: 1,
 });

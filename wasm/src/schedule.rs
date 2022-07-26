@@ -61,11 +61,12 @@ impl Schedule {
         let start_at_ms = thread.setting.start_at;
         let end_at_ms = thread.setting.end_at;
         let mut buff: Vec<Event> = vec![];
+        let shot_interval_frame = super::convert_interval_to_frame(thread.setting.shot_interval);
 
         // relative_ms -> イテレーション内での相対的ms
         // absolute_ms -> スクリーン全体での絶対的ms
-        for (relative_ms, absolute_ms) in (start_at_ms..=end_at_ms).enumerate() {
-          if (relative_ms as f64) % super::convert_interval_to_frame(thread.setting.shot_interval) == 0. {
+        for absolute_ms in start_at_ms..=end_at_ms {
+          if (absolute_ms as f64) % shot_interval_frame == 0. {
             buff.push(Event::new(thread.id, absolute_ms, absolute_ms)); // TODO: end_at入らない気がするが
           }
         }
@@ -91,7 +92,6 @@ impl Schedule {
     let events_iter = self.events
       .iter()
       .filter(|event| event.start_at == iter);
-    // crate::log!("iter: {:?}, events: {:?}", current_iter, events_iter.clone().collect::<Vec<_>>());
     for event in events_iter {
       let thread = self.threads
         .iter_mut()
