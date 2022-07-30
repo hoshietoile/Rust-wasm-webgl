@@ -37,12 +37,11 @@ import { ScrollCheckGroup } from '../molecules/ScrollCheckGroup';
 
 
 export const schema = z.object({
-  disk_size: zodNumber({ min: 1, max: 10 }),
-  // shot_type: zodNumber({ min: 0, max: 3 }),
+  disk_size: zodNumber({ min: 1, max: 100 }),
   shot_way_num: zodNumber({ min: 1, max: 100 }),
   shot_speed: zodNumber({}),
   shot_interval: zodNumber({ min: 50, max: 1000 }),
-  shot_behavior: zodNumber({ min: 0, max: 5 }),
+  shot_behavior: z.array(zodNumber({ min: 0, max: 5 })),
   speed_change_per: zodNumber({ min: 0.1, max: 5 }),
   speed_change_interval: zodNumber({ min: 10, max: 100 }),
   x_coordinate: zodNumber({ min: 1, max: 450 }), // TODO: ストアの値でルールを更新
@@ -53,6 +52,8 @@ export const schema = z.object({
   sleep_interval: zodNumber({ min: 0, max: 1000 }), // TODO: ストアの値でルールを更新
   sleep_timeout: zodNumber({ min: 0, max: 1000 }), // TODO: ストアの値でルールを更新
   degree_change_by: zodNumber({ min: -360, max: 360 }), // TODO: ストアの値でルールを更新
+  disk_type: zodNumber({ min: 0, max: 4 }), // TODO: ストアの値でルールを更新
+  disk_color: zodNumber({ min: 0, max: 8 }), // TODO: ストアの値でルールを更新
 })
 .refine((values) => {
   if (values.sleep_interval <= values.sleep_timeout) {
@@ -188,17 +189,50 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
           <FormProvider {...methods}>
             <form onChange={handleSubmit} className="y-interval flex-1">
 
+        {/* {JSON.stringify(methods.getValues())} */}
+              <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-md text-gray-400 dark:text-gray-400">
+                <p>ディスク設定</p>
+              </div>
+              
               <ZodExtendedInput
                 label="ディスクサイズ"
                 type='number'
                 name='disk_size'
               />
 
-              {/* <ZodExtendedInput
-                label="ショット種別"
-                type='number'
-                name='shot_type'
-              /> */}
+              <select {...methods.register('disk_type', {
+                valueAsNumber: true,
+              })}
+              className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
+              >
+                <option value="0">小丸弾</option>
+                <option value="1">中丸弾</option>
+                <option value="2">中丸弾2</option>
+                <option value="3">中丸弾3</option>
+                <option value="4">大弾</option>
+              </select>
+
+              <select {...methods.register('disk_color', {
+                valueAsNumber: true,
+              })}
+              className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
+              >
+                <option value="0">赤</option>
+                <option value="1">オレンジ</option>
+                <option value="2">黄</option>
+                <option value="3">緑</option>
+                <option value="4">水色</option>
+                <option value="5">青</option>
+                <option value="6">紺</option>
+                <option value="7">紫</option>
+                <option value="8">ピンク</option>
+              </select>
+
+              <ScrollCheckGroup />
+
+              <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-md text-gray-400 dark:text-gray-400">
+                <p>スケジュール設定(仮)</p>
+              </div>
 
               <ZodExtendedInput
                 label="ショットWAY数"
@@ -218,13 +252,6 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                 name='shot_interval'
               />
 
-              <ZodExtendedInput
-                label="弾の挙動"
-                type='number'
-                name='shot_behavior'
-              />
-
-              <ScrollCheckGroup />
   
 
               <ZodExtendedInput
@@ -307,17 +334,9 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                 <option value="3">3</option>
                 <option value="4">4</option>
                 <option value="5">5</option>
-              </select>
+            </select>*/}
 
-              <select {...methods.register('shot_speed', {
-                valueAsNumber: true,
-              })}>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select> */}
+              
 
               <div className="mt-auto">
                 <BaseBtn

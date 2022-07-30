@@ -8,16 +8,14 @@ use super::disk::{ Disk };
 pub struct EventThread {
   pub id: u32,
   pub iter: u32, // スレッド単位での実行時間
-  pub shot_behavior: ShotBehavior,
   pub setting: Setting,
 }
 
 impl EventThread {
-  pub fn new(id: u32, shot_behavior: ShotBehavior, setting: Setting) -> Self {
+  pub fn new(id: u32, setting: Setting) -> Self {
     EventThread {
       id,
       iter: 0,
-      shot_behavior, 
       setting,
     }
   }
@@ -38,23 +36,28 @@ impl EventThread {
     // 各弾種共通設定
     let sleep_interval= self.setting.sleep_interval;
     let sleep_timeout = self.setting.sleep_timeout;
-    let shot_behavior = match self.setting.shot_behavior {
-      ShotBehavior::Sleep(_1, _2) => ShotBehavior::Sleep(sleep_interval as i32, sleep_timeout as i32),
-      ShotBehavior::SpeedUp(_1, _2) => {
-        ShotBehavior::SpeedUp(
-          self.setting.speed_change_interval.unwrap_or(0.),
-          self.setting.speed_change_per.unwrap_or(0.),
-        )
-      },
-      ShotBehavior::SpeedDown(_1, _2) => {
-        ShotBehavior::SpeedDown(
-          self.setting.speed_change_interval.unwrap_or(0.),
-          self.setting.speed_change_per.unwrap_or(0.),
-        )
-      },
-      ShotBehavior::Reflect(_) => ShotBehavior::Reflect(self.setting.reflect_count),
-      othersize => othersize,
-    };
+    let shot_behavior = self.setting.shot_behavior
+      .iter()
+      .map(|sb| match &sb {
+        ShotBehavior::Sleep(_1, _2) => ShotBehavior::Sleep(sleep_interval as i32, sleep_timeout as i32),
+        ShotBehavior::SpeedUp(_1, _2) => {
+          ShotBehavior::SpeedUp(
+            self.setting.speed_change_interval.unwrap_or(0.),
+            self.setting.speed_change_per.unwrap_or(0.),
+          )
+        },
+        ShotBehavior::SpeedDown(_1, _2) => {
+          ShotBehavior::SpeedDown(
+            self.setting.speed_change_interval.unwrap_or(0.),
+            self.setting.speed_change_per.unwrap_or(0.),
+          )
+        },
+        ShotBehavior::Reflect(_) => ShotBehavior::Reflect(self.setting.reflect_count),
+        _ => ShotBehavior::Normal,
+      }
+    )
+    .collect::<Vec<ShotBehavior>>();
+
 
     // crate::log!("{:?}", self.setting.shot_type);
 
@@ -71,11 +74,12 @@ impl EventThread {
               Disk::new(
                 self.setting.x_coordinate,
                 self.setting.y_coordinate,
-                shot_behavior,
+                shot_behavior.clone(),
                 self.setting.disk_type,
                 self.setting.disk_size,
                 angle,
                 self.setting.shot_speed,
+                self.setting.disk_color,
               ),
             )
           })
@@ -93,11 +97,12 @@ impl EventThread {
               Disk::new(
                 self.setting.x_coordinate,
                 self.setting.y_coordinate,
-                shot_behavior,
+                shot_behavior.clone(),
                 self.setting.disk_type,
                 self.setting.disk_size,
                 angle,
                 self.setting.shot_speed,
+                self.setting.disk_color,
               )
             )
           })
@@ -114,11 +119,12 @@ impl EventThread {
               Disk::new(
                 self.setting.x_coordinate,
                 self.setting.y_coordinate,
-                shot_behavior,
+                shot_behavior.clone(),
                 self.setting.disk_type,
                 self.setting.disk_size,
                 angle,
                 self.setting.shot_speed,
+                self.setting.disk_color,
               ),
             )
           })

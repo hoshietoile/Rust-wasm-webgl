@@ -1,3 +1,5 @@
+import React from "react";
+
 export type ADT<Ident extends string, T> = {
   [K in keyof T]: Record<Ident, K> & T[K];
 }[keyof T];
@@ -7,6 +9,11 @@ export type DispatchActions<Ks extends keyof any, T extends Record<Ks, any>> = A
 export interface ComponentBase {
   className?: string;
 }
+
+export type EV<T extends HTMLElement> =
+  // | React.MouseEvent<T>
+  | React.ChangeEvent<T>
+  | React.FocusEvent<T>;
 
 export type Indivisual<T, Tag> = Extract<
   T,

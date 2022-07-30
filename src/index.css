@@ -20,3 +20,13 @@ body,
 .y-interval {
   @apply flex flex-col gap-2;
 }
+
+*::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+*::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-600 shadow-md;
+}
+*::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-800;
+}

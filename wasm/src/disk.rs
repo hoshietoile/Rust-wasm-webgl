@@ -1,6 +1,7 @@
 use super::shot::{ ShotBehavior };
 use super::vec2d::{ Vec2d };
 
+// TODO: 仮
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum DiskType {
   Oval,    // 楕円
@@ -21,6 +22,34 @@ pub fn resolve_disk_type(disk_type: u32) -> DiskType {
   }
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum DiskColor {
+  Red,
+  Orange,
+  Yellow,
+  Green,
+  LightBlue,
+  Blue,
+  DeepBlue,
+  Purple,
+  Pink,
+}
+
+pub fn resolve_disk_color(disk_color: u32) -> DiskColor {
+  match disk_color {
+    0 => DiskColor::Red,
+    1 => DiskColor::Orange,
+    2 => DiskColor::Yellow,
+    3 => DiskColor::Green,
+    4 => DiskColor::LightBlue,
+    5 => DiskColor::Blue,
+    6 => DiskColor::DeepBlue,
+    7 => DiskColor::Purple,
+    8 => DiskColor::Pink,
+    _ => DiskColor::Red,
+  }
+}
+
 #[derive(Debug, Clone)]
 pub struct Disk {
     pub age: u32, // exist age
@@ -29,30 +58,35 @@ pub struct Disk {
     pub y: f64,   // y-coordinate
     pub speed: f64, // speed
     pub vec2d: Vec2d, // moving velocity
-    pub behavior: ShotBehavior, // shot behavior.
+    pub behavior: Vec<ShotBehavior>, // shot behavior.
     pub disk_type: DiskType, // disk type.
     pub disk_size: f64, // disk size.
     pub img_source: Option<String>, // image source.
     pub sleep_time: i32,
+    pub disk_color: DiskColor,
 }
 
 impl Disk {
     pub fn new(
       x: f64,
       y: f64,
-      behavior: ShotBehavior,
+      behavior: Vec<ShotBehavior>,
       disk_type: DiskType,
       disk_size: f64,
       angle: f64,
       speed: f64,
+      disk_color: DiskColor,
     ) -> Self {
         let vec2d = Vec2d::new(angle, speed);
-        Self {
-          age: 0,
-          reflect_count: match behavior {
+        let reflect_count = behavior
+          .iter()
+          .find_map(|&sb| match sb {
             ShotBehavior::Reflect(num) => num,
             _ => None,
-          },
+          });
+        Self {
+          age: 0,
+          reflect_count,
           x,
           y,
           speed,
@@ -62,6 +96,7 @@ impl Disk {
           disk_size,
           img_source: None,
           sleep_time: 0,
+          disk_color,
         }
     }
 
@@ -126,11 +161,12 @@ mod test {
     let mut disk = Disk::new(
       10.,
       10.,
-      ShotBehavior::Normal,
+      vec![ShotBehavior::Normal],
       disk_type,
       4.,
       PI * 90. / 180.,
       10.,
+      DiskColor::Red,
     );
     disk.gain_age(1);
     assert_eq!(disk.age, 1);

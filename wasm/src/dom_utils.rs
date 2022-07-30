@@ -1,6 +1,6 @@
 use wasm_bindgen::JsCast;
 use web_sys::{
-    Document, HtmlCanvasElement, WebGlProgram, WebGlRenderingContext, WebGlShader, Window,
+    Document, HtmlCanvasElement, HtmlImageElement, WebGlProgram, WebGlRenderingContext, WebGlShader, Window,
     CanvasRenderingContext2d
 };
 
@@ -44,6 +44,12 @@ pub fn canvas(id: &str) -> Option<HtmlCanvasElement> {
     document()
         .and_then(|d| d.get_element_by_id(id))
         .and_then(|el| el.dyn_into::<HtmlCanvasElement>().ok())
+}
+
+pub fn image(id: &str) -> Option<HtmlImageElement> {
+    document()
+        .and_then(|d| d.get_element_by_id(id))
+        .and_then(|el| el.dyn_into::<HtmlImageElement>().ok())
 }
 
 // pub fn get_webgl_context_by_id(id: &str, width: u32, height: u32) -> Option<WebGlRenderingContext> {

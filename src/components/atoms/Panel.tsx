@@ -14,7 +14,7 @@ export const Panel: React.FC<PanelProps> = ({
     return (
       <Container className={clsx(
         className,
-        "rounded-md border border-gray-200 dark:border-gray-500",
+        "rounded-md border border-gray-200 dark:border-gray-500 overflow-hidden",
       )}>
         {children}
       </Container>

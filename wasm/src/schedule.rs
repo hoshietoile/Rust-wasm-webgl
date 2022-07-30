@@ -44,7 +44,6 @@ impl Schedule {
       Some(nth) => {
         let update_target = self.threads.get_mut(nth)?;
         update_target.setting = thread.setting;
-        update_target.shot_behavior = thread.shot_behavior;
       },
       None => {
         self.threads.push(thread);

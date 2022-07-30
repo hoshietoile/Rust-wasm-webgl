@@ -1,4 +1,6 @@
 use serde::{ Deserialize, Serialize };
+use crate::disk::{resolve_disk_color, DiskColor};
+
 use super::shot::{
   ShotType,
   ShotBehavior, 
@@ -14,6 +16,7 @@ use super::disk::{ resolve_disk_type, DiskType };
 pub struct SettingOptions {
   // Screen設定
   pub canvas_id: String,
+  pub theme: u32,
   pub width: f64,
   pub height: f64,
   pub iteration_ms: u32, // 1イテレーションのトータルms
@@ -24,10 +27,11 @@ pub struct SettingOptions {
   pub disk_size: Option<f64>,
   pub shot_type: Option<u32>,     // 種別
   pub disk_type: Option<u32>,     // 弾種別
+  pub disk_color: Option<u32>,     // 弾種別
   pub shot_speed: Option<f64>,    // 速度
   pub shot_way_num: Option<u32>,  // 発射WAY数
   pub shot_interval: Option<u32>, // 発射間隔
-  pub shot_behavior: Option<u32>, // 弾の挙動
+  pub shot_behavior: Option<Vec<u32>>, // 弾の挙動
   pub speed_change_per: Option<f64>, // ショット速度変化率
   pub speed_change_interval: Option<f64>, // ショット速度変化インターバル
   pub x_coordinate: Option<f64>, // X座標
@@ -48,8 +52,9 @@ pub struct Setting {
   pub end_at: u32,
   pub disk_size: f64,
   pub disk_type: DiskType,
+  pub disk_color: DiskColor,
   pub shot_type: ShotType,     // 種別
-  pub shot_behavior: ShotBehavior, // 弾の挙動
+  pub shot_behavior: Vec<ShotBehavior>, // 弾の挙動
   pub shot_speed: f64,    // 速度
   pub shot_way_num: u32,  // 発射WAY数
   pub shot_interval: u32, // 発射間隔
@@ -74,10 +79,16 @@ impl Setting {
     let end_at = options.end_at;
     let shot_type = options.shot_type.unwrap_or(0);
     let shot_type = resolve_shot_type(shot_type);
-    let shot_behavior = options.shot_behavior.unwrap_or(0);
-    let shot_behavior = resolve_shot_behavior(shot_behavior);
+    let shot_behavior = options.shot_behavior.clone().unwrap_or(vec![0]);
+    // let shot_behavior = resolve_shot_behavior(shot_behavior);
+    let shot_behavior = shot_behavior
+      .into_iter()
+      .map(|sb| resolve_shot_behavior(sb))
+      .collect::<Vec<ShotBehavior>>();
     let disk_type = options.disk_type.unwrap_or(0);
     let disk_type = resolve_disk_type(disk_type);
+    let disk_color = options.disk_color.unwrap_or(1);
+    let disk_color = resolve_disk_color(disk_color);
     Self {
       iteration_ms,
       start_at,
@@ -85,6 +96,7 @@ impl Setting {
       shot_type,
       shot_behavior,
       disk_type,
+      disk_color,
       disk_size: options.disk_size.unwrap_or(4.),
       shot_speed: options.shot_speed.unwrap_or(1.0),
       shot_way_num: options.shot_way_num.unwrap_or(6), 
