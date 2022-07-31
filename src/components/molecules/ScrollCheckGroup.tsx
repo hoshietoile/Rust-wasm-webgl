@@ -68,6 +68,10 @@ const SHOT_BEHAVIOR_OPTIONS = {
     LABEL: 'スリープ',
     VALUE: 5,
   },
+  GRAVITY: {
+    LABEL: '重力減衰/加速',
+    VALUE: 6,
+  },
 };
 const shotBehaviorOptions = Object.entries(SHOT_BEHAVIOR_OPTIONS)
   .map(([key, schema]) => {

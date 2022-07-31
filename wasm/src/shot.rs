@@ -21,6 +21,7 @@ pub enum ShotBehavior {
     Reflect(Option<u32>), // 画面反射(rest-reflect-count)
     Random, // ランダム角度
     Sleep(i32, i32), // スリープ弾(interval, timeout)
+    Gravity(u32, f64), // 重力弾(向き0|1|2|3, 変化量)
 }
 
 pub fn resolve_shot_behavior(num: u32) -> ShotBehavior {
@@ -30,6 +31,7 @@ pub fn resolve_shot_behavior(num: u32) -> ShotBehavior {
         3 => ShotBehavior::Reflect(None),
         4 => ShotBehavior::Random,
         5 => ShotBehavior::Sleep(0, 0),
+        6 => ShotBehavior::Gravity(0, 0.1),
         _ | 0 => ShotBehavior::Normal,
     }
 }

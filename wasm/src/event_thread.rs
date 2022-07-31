@@ -43,17 +43,21 @@ impl EventThread {
         ShotBehavior::SpeedUp(_1, _2) => {
           ShotBehavior::SpeedUp(
             self.setting.speed_change_interval.unwrap_or(0.),
-            self.setting.speed_change_per.unwrap_or(0.),
+            self.setting.speed_change_per.unwrap_or(1) as f64 / 100.,
           )
         },
         ShotBehavior::SpeedDown(_1, _2) => {
           ShotBehavior::SpeedDown(
             self.setting.speed_change_interval.unwrap_or(0.),
-            self.setting.speed_change_per.unwrap_or(0.),
+            self.setting.speed_change_per.unwrap_or(1) as f64 / 100.,
           )
         },
         ShotBehavior::Reflect(_) => ShotBehavior::Reflect(self.setting.reflect_count),
-        _ => ShotBehavior::Normal,
+        ShotBehavior::Gravity(_1, _2) => ShotBehavior::Gravity(
+          self.setting.gravity_direction.unwrap_or(0),
+          self.setting.gravity_change_per.unwrap_or(1) as f64 / 100.,
+        ),
+        _ => ShotBehavior::Normal
       }
     )
     .collect::<Vec<ShotBehavior>>();

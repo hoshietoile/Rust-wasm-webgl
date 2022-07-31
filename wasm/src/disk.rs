@@ -57,6 +57,7 @@ pub struct Disk {
     pub x: f64,   // x-coordinate
     pub y: f64,   // y-coordinate
     pub speed: f64, // speed
+    pub angle: f64, //
     pub vec2d: Vec2d, // moving velocity
     pub behavior: Vec<ShotBehavior>, // shot behavior.
     pub disk_type: DiskType, // disk type.
@@ -90,6 +91,7 @@ impl Disk {
           x,
           y,
           speed,
+          angle,
           vec2d,
           behavior, 
           disk_type,

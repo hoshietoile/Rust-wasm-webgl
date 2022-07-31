@@ -12,13 +12,14 @@ mod event_thread;
 
 use setting::Setting;
 use shot::ShotBehavior;
+use vec2d::Vec2d;
 // use rand::Rng;
 // use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use web_sys::console::log_1;
 use web_sys::{WebGlBuffer, WebGlRenderingContext, WebGlUniformLocation, HtmlImageElement, CanvasRenderingContext2d};
 // use vec2d::{Vec2d};
-use disk::{ Disk, DiskType };
+use disk::{ Disk, DiskType, DiskColor };
 use schedule::{ Schedule };
 use event_thread::{ EventThread };
 
@@ -245,6 +246,7 @@ impl Screen {
                             .iter()
                             .for_each(|&sb| {
                                 match sb {
+                                    // スリープ
                                     ShotBehavior::Sleep(interval, timeout) => {
                                         v.sleep_time += {
                                             if interval == 0 {
@@ -257,21 +259,24 @@ impl Screen {
                                                 0
                                             }
                                         }
-                                        // v.sleep_time += match v.behavior {
-                                        //     ShotBehavior::Sleep(interval, timeout) => {
-                                        //         if interval == 0 {
-                                        //             0
-                                        //         } else if v.age % (interval as u32) == 0 {
-                                        //             timeout
-                                        //         } else if v.sleep_time > 0 {
-                                        //             -1 
-                                        //         } else {
-                                        //             0
-                                        //         }
-                                        //     },
-                                        //     _ => 0,
-                                        // };
                                     },
+                                    ShotBehavior::SpeedDown(interval, per) => {
+                                        v.speed -= v.speed * per; 
+                                        v.vec2d = Vec2d::new(v.angle, v.speed);
+                                        log!("speed down speed: {}", v.speed);
+                                    },
+                                    ShotBehavior::SpeedUp(interval, per) => {
+                                        v.speed += v.speed * per; 
+                                        v.vec2d = Vec2d::new(v.angle, v.speed);
+                                        log!("speed up speed: {}", v.speed);
+                                    },
+                                    // 重力減衰/加速
+                                    ShotBehavior::Gravity(direction, by) => {
+                                        log!("shot gravity speed: {}", by);
+                                        let angle = std::f64::consts::PI * (90. * direction as f64) / 180.;
+                                        let vec2d = Vec2d::new(angle, v.speed * by);
+                                        v.vec2d = v.vec2d + vec2d;
+                                    }
                                     _ => (),
                                 }
                             });
@@ -293,12 +298,13 @@ impl Screen {
             .collect::<Vec<Option<Disk>>>();
     }
 
-    fn resolve_sprite_src(&self, disk_type: &DiskType) -> (f64, f64, f64, f64) {
+    fn resolve_sprite_src(&self, disk_type: &DiskType, disk_color: &DiskColor) -> (f64, f64, f64, f64) {
+        let casted_disk_color = (*disk_color as usize) as f64;
         match disk_type {
-            DiskType::Oval => (0., 0., 7.5, 7.5),
-            DiskType::Dot => (2., 12., 18., 18.),
-            DiskType::Circle => (2., 37., 18., 18.),
-            DiskType::Orb => (2., 61., 24., 24.),
+            DiskType::Oval => (0. + (casted_disk_color * 10.), 0., 10., 10.),
+            DiskType::Dot => (2. + (casted_disk_color * 24.), 12., 18., 18.),
+            DiskType::Circle => (2. + (casted_disk_color * 24.), 37., 18., 18.),
+            DiskType::Orb => (2. + (casted_disk_color * 30.), 61., 24., 24.),
             DiskType::Arrow => (2., 89., 61., 61.),
         }
     }
@@ -315,18 +321,7 @@ impl Screen {
         for (_, disk) in self.disks.iter().enumerate() {
             match disk {
                 Some(d) => {
-                    // self.context.begin_path();
-                    // self.context
-                    //     .arc(
-                    //         d.x.into(),
-                    //         d.y.into(),
-                    //         d.disk_size,
-                    //         0.,
-                    //         std::f64::consts::PI * 2.,
-                    //     )
-                    //     .unwrap();
-                    // self.context.fill();
-                    let sprite = self.resolve_sprite_src(&d.disk_type);
+                    let sprite = self.resolve_sprite_src(&d.disk_type, &d.disk_color);
                     self.context.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                         &self.sprite_sheet,
                         sprite.0,
@@ -358,20 +353,6 @@ impl Screen {
         }
         self.fps_counter += 1;
     }
-
-    // /**
-    //  * Scheduleの更新処理
-    //  */
-    // pub fn update_schedule(&mut self, setting: Setting) {
-    //     let mut schedule = Schedule::new();
-    //     let thread_id = schedule.generate_id();
-    //     let thread = EventThread::new(
-    //         thread_id,
-    //         setting.shot_behavior,
-    //         setting,
-    //     );
-    //     schedule.subscribe_thread(thread);
-    // }
 }
 
 /**

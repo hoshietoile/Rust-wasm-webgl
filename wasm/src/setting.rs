@@ -32,7 +32,7 @@ pub struct SettingOptions {
   pub shot_way_num: Option<u32>,  // 発射WAY数
   pub shot_interval: Option<u32>, // 発射間隔
   pub shot_behavior: Option<Vec<u32>>, // 弾の挙動
-  pub speed_change_per: Option<f64>, // ショット速度変化率
+  pub speed_change_per: Option<u32>, // ショット速度変化率
   pub speed_change_interval: Option<f64>, // ショット速度変化インターバル
   pub x_coordinate: Option<f64>, // X座標
   pub y_coordinate: Option<f64>, // Y座標
@@ -40,6 +40,8 @@ pub struct SettingOptions {
   pub sleep_interval: Option<f64>, // スリープ弾
   pub sleep_timeout: Option<f64>, // スリープ弾
   pub degree_change_by: Option<f64>, // 角度変化量
+  pub gravity_direction: Option<u32>, // 重力方向
+  pub gravity_change_per: Option<u32>, // 重力減衰%
 }
 
 /**
@@ -64,10 +66,12 @@ pub struct Setting {
 
   // 設定されていなくてもいいもの
   pub reflect_count: Option<u32>, // 反射数 
-  pub speed_change_per: Option<f64>, // ショット速度変化率
+  pub speed_change_per: Option<u32>, // ショット速度変化率(%)
   pub speed_change_interval: Option<f64>, // ショット速度変化インターバル
   pub sleep_interval: f64, // スリープ弾
   pub sleep_timeout: f64, // スリープ弾
+  pub gravity_direction: Option<u32>, // 重力方向
+  pub gravity_change_per: Option<u32>, // 重力減衰%
 }
 
 impl Setting {
@@ -80,7 +84,6 @@ impl Setting {
     let shot_type = options.shot_type.unwrap_or(0);
     let shot_type = resolve_shot_type(shot_type);
     let shot_behavior = options.shot_behavior.clone().unwrap_or(vec![0]);
-    // let shot_behavior = resolve_shot_behavior(shot_behavior);
     let shot_behavior = shot_behavior
       .into_iter()
       .map(|sb| resolve_shot_behavior(sb))
@@ -109,6 +112,8 @@ impl Setting {
       sleep_interval: options.sleep_interval.unwrap_or(0.),
       sleep_timeout: options.sleep_timeout.unwrap_or(0.),
       degree_change_by: options.degree_change_by.unwrap_or(0.),
+      gravity_direction: options.gravity_direction,
+      gravity_change_per: options.gravity_change_per,
     }
   }
 }

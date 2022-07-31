@@ -20,6 +20,11 @@ export type Indivisual<T, Tag> = Extract<
   Record<'type', Tag>
 >;
 
+// 特に使ってはいない
+export type OmitString<U> = {
+  [K in keyof U as U[K] extends string ? never : K]: U[K];
+};
+
 const match = <T extends Record<'type', keyof any>, TOut = T>(
   value: T,
 ) => {

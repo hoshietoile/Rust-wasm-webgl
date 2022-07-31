@@ -41,8 +41,8 @@ export const schema = z.object({
   shot_way_num: zodNumber({ min: 1, max: 100 }),
   shot_speed: zodNumber({}),
   shot_interval: zodNumber({ min: 50, max: 1000 }),
-  shot_behavior: z.array(zodNumber({ min: 0, max: 5 })),
-  speed_change_per: zodNumber({ min: 0.1, max: 5 }),
+  shot_behavior: z.array(zodNumber({ min: 0, max: 6 })),
+  speed_change_per: zodNumber({ min: 0, max: 100 }),
   speed_change_interval: zodNumber({ min: 10, max: 100 }),
   x_coordinate: zodNumber({ min: 1, max: 450 }), // TODO: ストアの値でルールを更新
   y_coordinate: zodNumber({ min: 1, max: 800 }), // TODO: ストアの値でルールを更新
@@ -54,6 +54,8 @@ export const schema = z.object({
   degree_change_by: zodNumber({ min: -360, max: 360 }), // TODO: ストアの値でルールを更新
   disk_type: zodNumber({ min: 0, max: 4 }), // TODO: ストアの値でルールを更新
   disk_color: zodNumber({ min: 0, max: 8 }), // TODO: ストアの値でルールを更新
+  gravity_direction: zodNumber({ min: 0, max: 3 }), // TODO: ストアの値でルールを更新
+  gravity_change_per: zodNumber({ min: 0, max: 100 }), // TODO: ストアの値でルールを更新
 })
 .refine((values) => {
   if (values.sleep_interval <= values.sleep_timeout) {
@@ -227,6 +229,24 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                 <option value="7">紫</option>
                 <option value="8">ピンク</option>
               </select>
+
+              <ZodExtendedInput
+                label="重力速度変化率(%)"
+                type='number'
+                name='gravity_change_per'
+              />
+
+              <select {...methods.register('gravity_direction', {
+                valueAsNumber: true,
+              })}
+              className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
+              >
+                <option value="0">下</option>
+                <option value="1">右</option>
+                <option value="2">左</option>
+                <option value="3">上</option>
+              </select>
+
 
               <ScrollCheckGroup />
 
