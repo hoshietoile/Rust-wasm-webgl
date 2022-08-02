@@ -117,13 +117,3 @@ impl Setting {
     }
   }
 }
-
-// #[cfg(tests)]
-// mod tests {
-//   use super::*;
-
-//   #[test]
-//   fn test_settings() {
-
-//   }
-// }

@@ -105,34 +105,6 @@ impl Disk {
     pub fn gain_age(&mut self, by: u32) {
         self.age = self.age + by;
     }
-
-    // fn speed_up(&mut self, by: f64) {
-    //     self.vec2d.speed_up(by);
-    // }
-
-    // fn speed_down(&mut self, by: f64) {
-    //     if self.vec2d.x >= 0.1 && self.vec2d.y >= 0.1 {
-    //       self.vec2d.speed_down(by);
-    //     }
-    // }
-
-    // pub fn speed_up(&mut self, by: f64) {
-    //   let speed = self.speed + by;
-    //   let sin = self.angle.sin() * speed;
-    //   let cos = self.angle.cos() * speed;
-    //   self.x = sin;
-    //   self.y = cos;
-    //   self.speed = speed;
-    // }
-
-    // pub fn speed_down(&mut self, by: f64) {
-    //   let speed = self.speed - by;
-    //   let sin = self.angle.sin() * speed;
-    //   let cos = self.angle.cos() * speed;
-    //   self.x = sin;
-    //   self.y = cos;
-    //   self.speed = speed;
-    // }
 }
 
 #[cfg(test)]

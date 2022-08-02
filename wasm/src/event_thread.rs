@@ -62,9 +62,6 @@ impl EventThread {
     )
     .collect::<Vec<ShotBehavior>>();
 
-
-    // crate::log!("{:?}", self.setting.shot_type);
-
     let new_disks = match self.setting.shot_type {
       ShotType::Circle => {
         let degree = 360. / (self.setting.shot_way_num as f64);

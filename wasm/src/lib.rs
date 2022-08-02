@@ -66,18 +66,6 @@ pub struct Screen {
     height: f64,
     theme: u32,
 
-    // shot_type: u32,
-    // shot_speed: f64,
-    // shot_way_num: u32,
-    // shot_interval: f64,
-    // shot_behavior: ShotBehavior,
-    // speed_change_per: f64,
-    // speed_change_interval: f64,
-
-    // x_coordinate: f64,
-    // y_coordinate: f64,
-
-    // reflect_count: Option<u32>,
     sprite_sheet: HtmlImageElement,
 
     disks: Vec<Option<Disk>>,
@@ -151,7 +139,6 @@ impl Screen {
      * 各アニメーションフレームごとの処理
      */
     fn on_animation_frame(&mut self, time: f64) -> () {
-        // self.iter += 1;
         self.schedule.iterate();
 
         /* スケジュールされたイベントの走査 */
@@ -163,21 +150,6 @@ impl Screen {
 
         /* fps更新 */
         self.calc_fps(time);
-        log!("fps: {}", self.last_fps);
-
-        /* アクティブ弾数 */
-        log!(
-            "disk_nums: {}",
-            self.disks
-                .iter()
-                .filter_map(|disk| {
-                    match disk {
-                        Some(_) => Some(1),
-                        _ => None,
-                    }
-                })
-                .count(),
-        );
     }
 
     /**
@@ -221,13 +193,6 @@ impl Screen {
         }
     }
 
-    // /**
-    //  * 
-    //  */
-    // fn on_Speed_change(&self, disk: Disk) -> Option<Disk> {
-        
-    // }
-
     /**
      * 登録しているDiskのステータスに従って座標を更新
      */
@@ -260,19 +225,16 @@ impl Screen {
                                             }
                                         }
                                     },
-                                    ShotBehavior::SpeedDown(interval, per) => {
+                                    ShotBehavior::SpeedDown(_, per) => {
                                         v.speed -= v.speed * per; 
                                         v.vec2d = Vec2d::new(v.angle, v.speed);
-                                        log!("speed down speed: {}", v.speed);
                                     },
-                                    ShotBehavior::SpeedUp(interval, per) => {
+                                    ShotBehavior::SpeedUp(_, per) => {
                                         v.speed += v.speed * per; 
                                         v.vec2d = Vec2d::new(v.angle, v.speed);
-                                        log!("speed up speed: {}", v.speed);
                                     },
                                     // 重力減衰/加速
                                     ShotBehavior::Gravity(direction, by) => {
-                                        log!("shot gravity speed: {}", by);
                                         let angle = std::f64::consts::PI * (90. * direction as f64) / 180.;
                                         let vec2d = Vec2d::new(angle, v.speed * by);
                                         v.vec2d = v.vec2d + vec2d;
@@ -289,7 +251,6 @@ impl Screen {
                         v.y += v.vec2d.y;
 
                         let d = self.on_reflect(v);
-                        // let d = self.on_speed_change();
                         d
                     },
                     _ => None,
@@ -316,7 +277,7 @@ impl Screen {
         self.context.save();
         let bg_color = if self.theme == 0 { "rgb(200, 200, 200, 1.0)" } else { "rgb(80, 80, 80, 1.0)" };
         self.context.set_fill_style(&JsValue::from(bg_color));
-        self.context.fill_rect(0., 0., self.width as f64, self.height as f64);
+        self.context.fill_rect(0., 0., self.width as f64, self.height as f64); 
 
         for (_, disk) in self.disks.iter().enumerate() {
             match disk {
@@ -339,6 +300,27 @@ impl Screen {
                 }
             }
         }
+
+        // TODO: モニタ部分をカスタムしやすいように別関数&座標計算入れるようにしたい
+        // アクティブ段数
+        let active_disk_count = self.disks
+            .iter()
+            .filter_map(|disk| {
+                match disk {
+                    Some(_) => Some(1),
+                    _ => None,
+                }
+            })
+            .count();
+
+        self.context.set_fill_style(&JsValue::from("rgba(0, 0, 0, 0.5)"));
+        self.context.fill_rect(10., 730., 180., 45.);
+        self.context.set_fill_style(&JsValue::from("rgb(255, 255, 255)"));
+        self.context.set_stroke_style(&JsValue::from("rgb(255, 255, 255)"));
+        self.context.set_font("16px sans-serif");
+        self.context.fill_text(&format!("FPS: {}", self.last_fps), 15., 750.);
+        self.context.fill_text(&format!("アクティブ弾数: {}", active_disk_count), 15., 770.);
+
         self.context.restore();
     }
 
@@ -383,7 +365,6 @@ pub fn init_screen(option_input: JsValue) -> Screen {
 
     // Disks初期化
     let disks = init_disks(DISK_NUM);
-    // log!("{:?}", disks);
 
     // Scheduleの初期化と最初のEventThreadを登録
     let mut schedule = Schedule::new();
