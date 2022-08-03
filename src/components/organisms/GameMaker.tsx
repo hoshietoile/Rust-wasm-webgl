@@ -44,6 +44,7 @@ export const schema = z.object({
   shot_behavior: z.array(zodNumber({ min: 0, max: 6 })),
   speed_change_per: zodNumber({ min: 0, max: 100 }),
   speed_change_interval: zodNumber({ min: 10, max: 100 }),
+  iteration_ms: zodNumber({ min: 0, max: 10000 }), // スケジュールトータル時間
   x_coordinate: zodNumber({ min: 1, max: 450 }), // TODO: ストアの値でルールを更新
   y_coordinate: zodNumber({ min: 1, max: 800 }), // TODO: ストアの値でルールを更新
   reflect_count: zodNumber({ min: 0, max: 3 }), // TODO: ストアの値でルールを更新
@@ -345,6 +346,12 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                   />
                 </div>
               </div>
+
+              <ZodExtendedInput
+                label="合計時間"
+                type='number'
+                name='iteration_ms'
+              />
 
               {/* <select {...methods.register('shot_speed', {
                 valueAsNumber: true,

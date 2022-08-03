@@ -105,6 +105,7 @@ impl Screen {
         log!("options {:?}", option_input); 
         let options: setting::SettingOptions = option_input.into_serde().unwrap();
         let setting = setting::Setting::new(&options);
+        let iteration_ms = setting.iteration_ms;
         let thread = match thread_id {
             Some(id) => {
                 self.schedule
@@ -128,6 +129,7 @@ impl Screen {
             },
         }?;
         let thread_id = thread.id;
+        self.schedule.set_end_at(iteration_ms);
         self.schedule.subscribe_thread(thread);
         self.schedule.refresh_events();
         Some(thread_id)
@@ -155,40 +157,37 @@ impl Screen {
     /**
      * 反射時処理
      */
-    fn on_reflect(&self, disk: Disk) -> Option<Disk> {
-        let mut v = disk.clone();
-        let size = v.disk_size;
-        let width = self.width;
-        let height = self.height;
-        let should_reflect = v.reflect_count.unwrap_or(0) > 0;
-        let reflect_behavior = v.behavior
-            .iter()
-            .find(|&sb| match sb {
-                ShotBehavior::Reflect(_) => true,
-                _ => false,
-            });
-        match (should_reflect, reflect_behavior) {
-            (true, Some(ShotBehavior::Reflect(Some(_)))) => {
-                // X軸方向
-                if v.x - size < 0. || v.x + size > width {
-                    v.x -= v.vec2d.x;
-                    v.vec2d.x = -v.vec2d.x;
-                    v.reflect_count = v.reflect_count.map(|num| num - 1);
+    fn on_reflect(disk: &mut Option<Disk>, width: f64, height: f64) {
+        if let Some(v) = disk {
+            let size = v.disk_size;
+            let should_reflect = v.reflect_count.unwrap_or(0) > 0;
+            let reflect_behavior = v.behavior
+                .iter()
+                .find(|&sb| match sb {
+                    ShotBehavior::Reflect(_) => true,
+                    _ => false,
+                });
+            match (should_reflect, reflect_behavior) {
+                (true, Some(ShotBehavior::Reflect(Some(_)))) => {
+                    // X軸方向
+                    if v.x - size < 0. || v.x + size > width {
+                        v.x -= v.vec2d.x;
+                        v.vec2d.x = -v.vec2d.x;
+                        v.reflect_count = v.reflect_count.map(|num| num - 1);
+                    }
+                    // Y軸方向
+                    if v.y - size < 0. || v.y + size > height {
+                        v.y -= v.vec2d.y;
+                        v.vec2d.y = -v.vec2d.y;
+                        v.reflect_count = v.reflect_count.map(|num| num - 1);
+                    }
                 }
-                // Y軸方向
-                if v.y - size < 0. || v.y + size > height {
-                    v.y -= v.vec2d.y;
-                    v.vec2d.y = -v.vec2d.y;
-                    v.reflect_count = v.reflect_count.map(|num| num - 1);
+                _ => {
+                    // 通常弾の場合
+                    if v.x + size < 0. || v.x - size > width || v.y + size < 0. || v.y - size > height {
+                        disk.take();
+                    }
                 }
-                Some(v)
-            }
-            _ => {
-                // 通常弾の場合
-                if v.x + size < 0. || v.x - size > width || v.y + size < 0. || v.y - size > height {
-                    return None;
-                }
-                Some(v)
             }
         }
     }
@@ -197,66 +196,60 @@ impl Screen {
      * 登録しているDiskのステータスに従って座標を更新
      */
     fn update_disks(&mut self) {
-        self.disks = self.disks
-            .clone()
-            .into_iter()
-            .map(|disk| {
-                match disk {
-                    Some(mut v) => {
-                        v.gain_age(1);
+        let width = self.width;
+        let height  = self.height;
+        self.disks
+            .iter_mut()
+            .for_each(|disk| {
+                if let Some(v) = disk {
+                    v.gain_age(1);
 
-                        // スリープ制御
-                        // TODO: ShotBehavior用の解析関数作る
-                        v.clone().behavior
-                            .iter()
-                            .for_each(|&sb| {
-                                match sb {
-                                    // スリープ
-                                    ShotBehavior::Sleep(interval, timeout) => {
-                                        v.sleep_time += {
-                                            if interval == 0 {
-                                                0
-                                            } else if v.age % (interval as u32) == 0 {
-                                                timeout
-                                            } else if v.sleep_time > 0 {
-                                                -1
-                                            } else {
-                                                0
-                                            }
+                    // スリープ制御
+                    // TODO: ShotBehavior用の解析関数作る
+                    v.behavior
+                        .clone()
+                        .iter()
+                        .for_each(|&sb| {
+                            match sb {
+                                // スリープ
+                                ShotBehavior::Sleep(interval, timeout) => {
+                                    v.sleep_time += {
+                                        if interval == 0 {
+                                            0
+                                        } else if v.age % (interval as u32) == 0 {
+                                            timeout
+                                        } else if v.sleep_time > 0 {
+                                            -1
+                                        } else {
+                                            0
                                         }
-                                    },
-                                    ShotBehavior::SpeedDown(_, per) => {
-                                        v.speed -= v.speed * per; 
-                                        v.vec2d = Vec2d::new(v.angle, v.speed);
-                                    },
-                                    ShotBehavior::SpeedUp(_, per) => {
-                                        v.speed += v.speed * per; 
-                                        v.vec2d = Vec2d::new(v.angle, v.speed);
-                                    },
-                                    // 重力減衰/加速
-                                    ShotBehavior::Gravity(direction, by) => {
-                                        let angle = std::f64::consts::PI * (90. * direction as f64) / 180.;
-                                        let vec2d = Vec2d::new(angle, v.speed * by);
-                                        v.vec2d = v.vec2d + vec2d;
                                     }
-                                    _ => (),
+                                },
+                                ShotBehavior::SpeedDown(_, per) => {
+                                    v.speed -= v.speed * per; 
+                                    v.vec2d = Vec2d::new(v.angle, v.speed);
+                                },
+                                ShotBehavior::SpeedUp(_, per) => {
+                                    v.speed += v.speed * per; 
+                                    v.vec2d = Vec2d::new(v.angle, v.speed);
+                                },
+                                // 重力減衰/加速
+                                ShotBehavior::Gravity(direction, by) => {
+                                    let angle = std::f64::consts::PI * (90. * direction as f64) / 180.;
+                                    let vec2d = Vec2d::new(angle, v.speed * by);
+                                    v.vec2d = v.vec2d + vec2d;
                                 }
-                            });
-                        
-                        if v.sleep_time > 0 {
-                            return Some(v);
-                        }
-
-                        v.x += v.vec2d.x;
-                        v.y += v.vec2d.y;
-
-                        let d = self.on_reflect(v);
-                        d
-                    },
-                    _ => None,
+                                _ => (),
+                            }
+                        });
+                    
+                    if v.sleep_time > 0 { return }
+                    v.x += v.vec2d.x;
+                    v.y += v.vec2d.y;
                 }
-            })
-            .collect::<Vec<Option<Disk>>>();
+
+                Screen::on_reflect(disk, width, height);
+            });
     }
 
     fn resolve_sprite_src(&self, disk_type: &DiskType, disk_color: &DiskColor) -> (f64, f64, f64, f64) {
@@ -279,7 +272,7 @@ impl Screen {
         self.context.set_fill_style(&JsValue::from(bg_color));
         self.context.fill_rect(0., 0., self.width as f64, self.height as f64); 
 
-        for (_, disk) in self.disks.iter().enumerate() {
+        for disk in self.disks.iter() {
             match disk {
                 Some(d) => {
                     let sprite = self.resolve_sprite_src(&d.disk_type, &d.disk_color);
@@ -373,6 +366,7 @@ pub fn init_screen(option_input: JsValue) -> Screen {
         thread_id,
         setting,
     );
+    schedule.set_end_at(options.iteration_ms);
     schedule.subscribe_thread(thread);
     schedule.refresh_events();
 

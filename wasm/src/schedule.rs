@@ -35,6 +35,10 @@ impl Schedule {
     self.gen_id
   }
 
+  pub fn set_end_at(&mut self, end_at: u32) {
+    self.end_at = end_at; 
+  }
+
   // threadを追加
   pub fn subscribe_thread(&mut self, thread: EventThread) -> Option<()> {
     let found = self.threads
@@ -73,11 +77,11 @@ impl Schedule {
       })
       .collect::<Vec<Event>>();
 
-    let end_at = self.events
-      .iter()
-      .max_by(|a, b| a.end_at.cmp(&b.end_at));
+    // let end_at = self.events
+    //   .iter()
+    //   .max_by(|a, b| a.end_at.cmp(&b.end_at));
 
-    self.end_at = end_at.unwrap().end_at;
+    // self.end_at = end_at.unwrap().end_at;
   }
 
   // 現イテレーションでのeventを巡回
