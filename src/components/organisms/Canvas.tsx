@@ -10,6 +10,7 @@ export interface CanvasHandler {
   gameStart: () => void;
   gameTmpStop: () => void;
   gameStop: () => void;
+  addThread: () => void;
 }
 
 type CanvasProps = ComponentPropsWithoutRef<any> & {
@@ -75,6 +76,18 @@ export const Canvas: React.FC<CanvasProps> = forwardRef<CanvasHandler>(({}, ref)
     }
   }
 
+  /**
+   * スレッドの追加(TODO: ほかのコンポーネントに役割を移動)
+   */
+  const addThread = () => {
+    if (glInstanceRef.current) {
+      glInstanceRef.current.upsert_thread_setting(undefined, { ...canvasState });
+      const _ids = glInstanceRef.current.get_thread_ids();
+      const ids = Array.from(_ids);
+      setThreadsState(ids)
+    }
+  }
+
   /** 親コンポーネントから命令的に事項するインタフェース */
   useImperativeHandle(ref, () => ({
     updateCanvasState() {
@@ -92,20 +105,11 @@ export const Canvas: React.FC<CanvasProps> = forwardRef<CanvasHandler>(({}, ref)
     gameStop() {
       animateRef.current = false;
       initGl();
+    },
+    addThread() {
+      addThread();
     }
-  }));
-
-  /**
-   * スレッドの追加(TODO: ほかのコンポーネントに役割を移動)
-   */
-  const addThread = () => {
-    if (glInstanceRef.current) {
-      glInstanceRef.current.upsert_thread_setting(undefined, { ...canvasState });
-      const _ids = glInstanceRef.current.get_thread_ids();
-      const ids = Array.from(_ids);
-      setThreadsState(ids)
-    }
-  }
+  })); 
 
   return (
     <>
@@ -116,7 +120,6 @@ export const Canvas: React.FC<CanvasProps> = forwardRef<CanvasHandler>(({}, ref)
       width={canvasState.width}
       height={canvasState.height}
     />
-    <button onClick={addThread}>add Thread</button>
-</>
+    </>
   );
 });

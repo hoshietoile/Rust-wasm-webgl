@@ -8,6 +8,7 @@ export type ButtonBtn = 'button';
 
 type SubmitBtnProps = {
   type: 'submit';
+  form?: string;
 }
 
 type ButtonBtnProps = {

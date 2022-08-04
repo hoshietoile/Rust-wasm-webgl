@@ -6,7 +6,7 @@ export const gameStateAtom = atom({
   disk_num: 400,
   width: 800,
   height: 800,
-  disk_size: 2,
+  disk_size: 10,
   shot_type: 1,
   shot_speed: 1,
   shot_way_num: 10,

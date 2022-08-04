@@ -16,25 +16,8 @@ import { BtnGroup } from '../molecules/BtnGroup';
 import { Panel } from '../atoms/Panel';
 import { Schedule } from './Schedule';
 import { ScrollCheckGroup } from '../molecules/ScrollCheckGroup';
-
-// interface ConnectFormProps<T> {
-//   children: React.FC<{
-//     register: UseFormRegister<T>,
-//   }>;
-// }
-
-// export const ConnectForm = <T, >(props: React.PropsWithChildren<ConnectFormProps<T>>) => {
-//   const { children } = props;
-//   const methods = useFormContext<T>();
-//   return children({ ...methods })
-// }
-
-// const TextComponent: React.FC<{}> = ({ }) => {
-//   <ConnectForm<{register: UseFormRegister<{ shotSpeed: number; }>}>>
-//     {({ register }) => <input {...register("shotSpeed")} />}
-//   </ConnectForm>
-// }
-
+import { Label } from '../atoms/Label';
+import { Divider } from '../atoms/Divider';
 
 export const schema = z.object({
   disk_size: zodNumber({ min: 1, max: 100 }),
@@ -74,6 +57,7 @@ interface GameMakerProps extends ComponentBase {
 
 export const GameMaker: React.FC<GameMakerProps> = (props) => {
   const { className } = props;
+  const scrollBottomRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef({} as CanvasHandler);
   const [canvasState, setCanvasState] = useAtom(gameStateAtom);
 
@@ -88,6 +72,13 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
     reValidateMode: 'onChange',
     resolver: zodResolver(schema),
   })
+
+  const { formState, getValues } = methods;
+  const formValues = getValues();
+
+  useEffect(() => {
+    scrollBottomRef?.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [formValues.shot_behavior]);
 
   /** onChangeで発火 */
   const handleSubmit = methods.handleSubmit((data) => {
@@ -132,6 +123,10 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
     })
   }, [])
 
+  const addThread = () => {
+    canvasRef.current.addThread();
+  }
+
   const screenBtn = useMemo(() => {
     return [
       {
@@ -149,30 +144,30 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
     ]
   }, [])
 
-  const shotTypeBtn = useMemo(() => {
-    return [
-      {
-        icon: <span>ランダム</span>,
-        onClick: () => handleShotTypeChange(0),
-      },
-      {
-        icon: <span>放射状</span>,
-        onClick: () => handleShotTypeChange(1),
-      },
-      {
-        icon: <span>放射状回転</span>,
-        onClick: () => handleShotTypeChange(2),
-      },
-      {
-        icon: <span>渦巻状</span>,
-        onClick: () => handleShotTypeChange(3),
-      },
-      {
-        icon: <span>撃ち降ろし</span>,
-        onClick: () => handleShotTypeChange(4),
-      },
-    ]
-  }, [])
+  // const shotTypeBtn = useMemo(() => {
+  //   return [
+  //     {
+  //       icon: <span>ランダム</span>,
+  //       onClick: () => handleShotTypeChange(0),
+  //     },
+  //     {
+  //       icon: <span>放射状</span>,
+  //       onClick: () => handleShotTypeChange(1),
+  //     },
+  //     {
+  //       icon: <span>放射状回転</span>,
+  //       onClick: () => handleShotTypeChange(2),
+  //     },
+  //     {
+  //       icon: <span>渦巻状</span>,
+  //       onClick: () => handleShotTypeChange(3),
+  //     },
+  //     {
+  //       icon: <span>撃ち降ろし</span>,
+  //       onClick: () => handleShotTypeChange(4),
+  //     },
+  //   ]
+  // }, [])
 
   return (
     <div className={clsx(
@@ -181,140 +176,50 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
     )}>
       <Panel className="flex-1 flex overflow-y-scroll">
         <>
-          <div className="mx-2">
+          {/* <div className="mx-2">
             <BtnGroup
               direction="vertical"
               className="flex flex-col"
               btnClass="px-4 py-3"
               schema={shotTypeBtn}
             ></BtnGroup>
-          </div>
+          </div> */}
           <FormProvider {...methods}>
-            <form onChange={handleSubmit} className="y-interval flex-1">
+            <form id="screen-setting-form" onChange={handleSubmit} className="y-interval flex-1"> 
 
-        {/* {JSON.stringify(methods.getValues())} */}
-              <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-md text-gray-400 dark:text-gray-400">
-                <p>ディスク設定</p>
-              </div>
-              
-              <ZodExtendedInput
-                label="ディスクサイズ"
-                type='number'
-                name='disk_size'
-              />
+              <Label label="弾幕設定" />
 
-              <select {...methods.register('disk_type', {
-                valueAsNumber: true,
-              })}
-              className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
-              >
-                <option value="0">小丸弾</option>
-                <option value="1">中丸弾</option>
-                <option value="2">中丸弾2</option>
-                <option value="3">中丸弾3</option>
-                <option value="4">大弾</option>
-              </select>
+              <div className="flex flex-col y-interval">
+                <span>射出角度</span>
+                <div className="flex gap-4">
+                  <ZodExtendedInput
+                    label="射出角変化量(°)"
+                    type='number'
+                    name='degree_change_by'
+                  />
 
-              <select {...methods.register('disk_color', {
-                valueAsNumber: true,
-              })}
-              className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
-              >
-                <option value="0">赤</option>
-                <option value="1">オレンジ</option>
-                <option value="2">黄</option>
-                <option value="3">緑</option>
-                <option value="4">水色</option>
-                <option value="5">青</option>
-                <option value="6">紺</option>
-                <option value="7">紫</option>
-                <option value="8">ピンク</option>
-              </select>
+                  {/* TODO: input-group */}
+                  <ZodExtendedInput
+                    label="最大射出角(°)"
+                    type='number'
+                    name='degree_change_by'
+                  />
 
-              <ZodExtendedInput
-                label="重力速度変化率(%)"
-                type='number'
-                name='gravity_change_per'
-              />
-
-              <select {...methods.register('gravity_direction', {
-                valueAsNumber: true,
-              })}
-              className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
-              >
-                <option value="0">下</option>
-                <option value="1">右</option>
-                <option value="2">左</option>
-                <option value="3">上</option>
-              </select>
-
-
-              <ScrollCheckGroup />
-
-              <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-md text-gray-400 dark:text-gray-400">
-                <p>スケジュール設定(仮)</p>
+                  <ZodExtendedInput
+                    label="最小射出角(°)"
+                    type='number'
+                    name='degree_change_by'
+                  />
+                </div>
               </div>
 
-              <ZodExtendedInput
-                label="ショットWAY数"
-                type='number'
-                name='shot_way_num'
-              />
-
-              <ZodExtendedInput
-                label="ショット速度"
-                type='number'
-                name='shot_speed'
-              />
 
               <ZodExtendedInput
                 label="ショット間隔"
                 type='number'
                 name='shot_interval'
               />
-
-  
-
-              <ZodExtendedInput
-                label="速度変化率"
-                type='number'
-                name='speed_change_per'
-              />
-
-              <ZodExtendedInput
-                label="速度変化間隔"
-                type='number'
-                name='speed_change_interval'
-              />
-
-              <ZodExtendedInput
-                label="反射回数"
-                type='number'
-                name='reflect_count'
-              />
-
-              <ZodExtendedInput
-                label="射出角変化量(°)"
-                type='number'
-                name='degree_change_by'
-              />
-
-              <div className="flex flex-col y-interval">
-                <span>スリープ</span>
-                <div className="flex gap-4">
-                  <ZodExtendedInput
-                    label="インターバルms"
-                    type='number'
-                    name='sleep_interval'
-                  />
-                  <ZodExtendedInput
-                    label="スリープms"
-                    type='number'
-                    name='sleep_timeout'
-                  />
-                </div>
-              </div>
-
+              
               <div className="flex flex-col y-interval">
                 <span>射出位置</span>
                 <div className="flex gap-4">
@@ -353,30 +258,140 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
                 name='iteration_ms'
               />
 
-              {/* <select {...methods.register('shot_speed', {
-                valueAsNumber: true,
-              })}>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-            </select>*/}
-
+        {/* {JSON.stringify(methods.getValues())} */}
+             <Label label="ディスク設定" /> 
               
+              <ZodExtendedInput
+                label="ディスクサイズ"
+                type='number'
+                name='disk_size'
+              />
 
-              <div className="mt-auto">
-                <BaseBtn
-                  type="submit"
-                  className={clsx(
-                    "text-white bg-zinc-400",
-                    methods.formState.isValid ? "bg-blue-600" : "bg-red-600"
-                  )}
-                >保存</BaseBtn>
-              </div>
+              <ZodExtendedInput
+                label="ショットWAY数"
+                type='number'
+                name='shot_way_num'
+              />
 
-              <Schedule />
+              <ZodExtendedInput
+                label="ショット速度"
+                type='number'
+                name='shot_speed'
+              /> 
 
+            <div className={clsx("flex flex-col")}>
+              <label>弾種</label>
+              <select {...methods.register('disk_type', {
+                valueAsNumber: true,
+              })}
+              className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
+              >
+                <option value="0">小丸弾</option>
+                <option value="1">中丸弾</option>
+                <option value="2">中丸弾2</option>
+                <option value="3">中丸弾3</option>
+                <option value="4">大弾</option>
+              </select>
+            </div>
+
+            <div className={clsx("flex flex-col")}>
+              <label>弾色</label>
+              <select {...methods.register('disk_color', {
+                valueAsNumber: true,
+              })}
+              className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
+              >
+                <option value="0">赤</option>
+                <option value="1">オレンジ</option>
+                <option value="2">黄</option>
+                <option value="3">緑</option>
+                <option value="4">水色</option>
+                <option value="5">青</option>
+                <option value="6">紺</option>
+                <option value="7">紫</option>
+                <option value="8">ピンク</option>
+              </select>
+            </div>
+
+              <Divider />
+
+              {/* 特殊弾幕設定 */}
+              <ScrollCheckGroup />
+
+              {formValues?.shot_behavior && 
+                <>
+                  {formValues.shot_behavior.includes(6) && 
+                    <div className="flex flex-col y-interval">
+                      <span>重力速度変化</span>
+                      <div className="flex gap-4">
+                        <ZodExtendedInput
+                          label="重力速度変化率(%)"
+                          type='number'
+                          name='gravity_change_per'
+                        />
+
+                        <div className={clsx("flex flex-col")}>
+                          <label>重力方向</label>
+                          <select {...methods.register('gravity_direction', {
+                            valueAsNumber: true,
+                          })}
+                          className={clsx("focus:outline-0 focus:border-2 focus:border-emerald-200 dark:focus:border-emerald-400 border border-gray-200 bg-gray-50 dark:bg-gray-600 dark:border-gray-700 rounded-md p-1")}
+                          >
+                            <option value="0">下</option>
+                            <option value="1">右</option>
+                            <option value="2">左</option>
+                            <option value="3">上</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                  {(formValues.shot_behavior.includes(1) || formValues.shot_behavior.includes(2) || formValues.shot_behavior.includes(6)) &&
+                    <>
+                      <ZodExtendedInput
+                        label="速度変化率"
+                        type='number'
+                        name='speed_change_per'
+                      />
+
+                      <ZodExtendedInput
+                        label="速度変化間隔"
+                        type='number'
+                        name='speed_change_interval'
+                      />
+                    </>
+                  }
+
+                  {formValues.shot_behavior.includes(3) && 
+                    <ZodExtendedInput
+                      label="反射回数"
+                      type='number'
+                      name='reflect_count'
+                    />
+                  }
+
+                  {formValues.shot_behavior.includes(5) &&
+                    <div className="flex flex-col y-interval">
+                      <span>スリープ</span>
+                      <div className="flex gap-4">
+                        <ZodExtendedInput
+                          label="インターバルms"
+                          type='number'
+                          name='sleep_interval'
+                        />
+                        <ZodExtendedInput
+                          label="スリープms"
+                          type='number'
+                          name='sleep_timeout'
+                        />
+                      </div>
+                    </div> 
+                  }
+                </>
+              } 
+
+              <div ref={scrollBottomRef} />
             </form>
           </FormProvider>
 
@@ -386,9 +401,36 @@ export const GameMaker: React.FC<GameMakerProps> = (props) => {
         <Panel>
           <>
             <div className="flex">
-              <BtnGroup direction="horizontal" schema={screenBtn} />
+              <div className="mr-auto" />
+              <div className="mt-auto x-interval">
+                <div className="mr-auto" />
+                <BaseBtn
+                  type="submit"
+                  form="screen-setting-form"
+                  className={clsx(
+                    "text-white bg-zinc-400",
+                    methods.formState.isValid ? "bg-blue-600" : "bg-red-600"
+                  )}
+                >保存</BaseBtn>
+
+                <BaseBtn
+                  <ButtonBtn>
+                  type="button"
+                  className={clsx(
+                    "text-white bg-zinc-400",
+                    // methods.formState.isValid ? "bg-blue-600" : "bg-red-600"
+                  )}
+                  onClick={addThread}
+                >スレッドの追加</BaseBtn>
+              </div>
+              <BtnGroup
+                direction="horizontal"
+                schema={screenBtn}
+              />
             </div>
             <Canvas ref={canvasRef} />
+            {/* TODO: スケジュール表示 */}
+            <canvas width="800" height="200" />
           </>
         </Panel>
       {/* </Container> */}

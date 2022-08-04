@@ -4,6 +4,7 @@ import z from 'zod';
 import { EV } from '~/@types/utils';
 import { parseIntOr, unwrapEV } from './../../assets/utils/common';
 import { schema } from '../organisms/GameMaker';
+import { Label } from '../atoms/Label';
 
 interface BaseCheckProps {
   id: string;
@@ -29,11 +30,11 @@ export const BaseCheck: React.FC<BaseCheckProps> = ({
         value={value}
         checked={checked}
         onChange={onChange}
-        className="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+        className="cursor-pointer w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
       />
       <label
         htmlFor={id}
-        className="ml-2 w-full text-sm font-medium text-gray-900 rounded dark:text-gray-300"
+        className="cursor-pointer ml-2 w-full text-sm font-medium text-gray-900 rounded dark:text-gray-300"
       >{label}</label>
     </div>
   ) 
@@ -44,10 +45,10 @@ interface ScrollCheckGroupProps {
 }
 
 const SHOT_BEHAVIOR_OPTIONS = {
-  NORMAL: {
-    LABEL: 'デフォルト',
-    VALUE: 0,
-  },
+  // NORMAL: {
+  //   LABEL: 'デフォルト',
+  //   VALUE: 0,
+  // },
   SPEED_UP: {
     LABEL: '加速',
     VALUE: 1,
@@ -102,8 +103,8 @@ export const ScrollCheckGroup: React.FC<ScrollCheckGroupProps> = ({}) => {
 
     return (
       <div className="bg-white rounded shadow dark:bg-gray-700">
-        <label>弾の挙動</label>
-        <ul className="overflow-y-auto px-3 pb-3 h-48 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSearchButton">
+        <Label label="弾の挙動" className="mb-2" />
+        <ul className="overflow-y-auto pr-3 pb-3 h-36 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSearchButton">
           {shotBehaviorOptions.map((option) => (
             <li key={option.key}>
               <BaseCheck
